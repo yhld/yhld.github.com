@@ -1,0 +1,69 @@
+<HTML>
+<HEAD>
+<TITLE> New Document </TITLE>
+<style type="text/css">
+.box {
+	position:absolute;
+	background-repeat:no-repeat;
+	visibility:visible;
+	z-index:1;
+	left: 4px;
+	top: 128px;
+	width: 373px;
+	height:283px;
+	/*opacity:1;
+	-webkit-transition-property:opacity, height, left, width, top;*/
+	/*-webkit-tap-highlight-color:rgba(200, 0, 0, 0.4);
+	-webkit-border-radius: 5px;
+	
+	-webkit-transform-style:preserve-3d;*/
+	-webkit-animation-name:q;
+	-webkit-animation-duration:5s;
+	-webkit-animation-iteration-count:1
+}
+@-webkit-keyframes q{
+	from{-webkit-transform:rotateX(0deg);}
+	25% {-webkit-transform :rotateX(0deg);}
+	50% {-webkit-transform :rotateX(45deg);}	
+	75% {-webkit-transform : rotateY(90deg);}
+	to {-webkit-transform : rotateY(360deg) rotateX(0deg);}
+}
+@-webkit-keyframes t{
+	from{-webkit-transform : rotateY(0deg) rotateX(0deg);}
+	25% {-webkit-transform : rotateY(-90deg);}
+	50% {-webkit-transform : rotateX(-45deg);}
+	75% {-webkit-transform : rotateX(0deg);}
+	to {-webkit-transform:rotateX(0deg);}
+}
+
+</style>
+<script type="text/javascript">
+function init(){
+	document.getElementById("box").style.webkitAnimationName== "q";
+}
+function trans(element) {
+	//alert(element.style.webkitAnimationName)
+	if (element.style.webkitAnimationName=='q'||element.style.webkitAnimationName=='')
+	{
+		element.style.webkitAnimationName = 't';
+		
+	}else {
+		element.style.webkitAnimationName = 'q';
+	}
+
+}
+
+</script>
+</HEAD>
+
+<BODY onLoad="init()">
+<br><br>
+Çëµ¥»÷Í¼Æ¬£º
+<hr>
+
+<div class='box' id='box' onclick = 'trans(this)'>
+    <img src="1.jpg" alt="Nextroot" /><br />
+</div>
+
+</BODY>
+</HTML>

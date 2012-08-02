@@ -1,0 +1,320 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<TITLE> New Document </TITLE>
+<META NAME="Generator" CONTENT="EditPlus">
+<META NAME="Author" CONTENT="">
+<META NAME="Keywords" CONTENT="">
+<META NAME="Description" CONTENT="">
+<script type = "text/JavaScript" src = "mainMenu.js"></script>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var canvas = new graphics.canvas(0,0,640,526);
+var text_arr = new Array;
+var main_pos = 2;		//主菜单焦点位置
+var main_menu_num=7;	//主菜单菜单项数
+var main_menu_disp_num=5;	//主菜单显示的项数
+var main_menu_focus=0; 	//主菜单第一张图片所对应的 pic_arr object的下标
+var con = new Array;
+var opacity_up;
+var opacity_down;
+var bottom_in_effect = new Array;
+var top_in_effect = new Array;
+var focus;
+var focus_area = 0;	//--------定义一个区域块，一级为0，二级为1
+var num_flag = 1;
+var sub_main_pos;
+var main_length= mainMenu.length;
+var sub_pos = 0;
+var pic_arr = new Array;
+var left_effect = new Array;
+var left_hidden_area;
+var right_hidden_area;
+var right_effect = new Array;
+var AD_arr = new Array;
+var right_in_effect;
+var right_out_effect;
+var left_in_effect;
+var left_out_effect;
+
+
+document.onkeypress = grabEvent;
+document.onirkeypress = grabEvent;
+//document.onkeydown = grabEvent;
+function grabEvent(e){
+	//alert(e.which);
+	switch(e.which){
+		case 4://right
+			//main_pos -= 1;
+			if(focus_area == 0){
+				num_flag = 1;
+				action_effect(-1);
+				sub_pos = 0;
+			}
+			break;
+		case 3:	//left
+			if(focus_area == 0){
+				num_flag = 0;
+				action_effect(1);
+				sub_pos = 0;
+			}
+			break;
+		case 1:	//up
+			changeFocus(-1);
+			break;
+		case 2:	//down
+		  	changeFocus(1);
+			break;
+	}
+}
+
+function init()
+{
+	 showImage();
+	 showTextElement();
+	 showADElement();
+	 showEffect();
+	 setSubEffect();
+	 setADEffect();
+
+}
+
+function showImage()
+{
+     canvas.bgImage = "index_bg.gif";
+	 for(var i = 0; i<main_menu_disp_num; i++){
+		pic_arr[i] = new graphics.imageElement(54+i*110,40,75,70,mainMenu[i].pic[0]);
+		//pic_arr[i] = new graphics.imageElement(0,0,75,70,mainMenu[i].pic[0]);
+		pic_arr[i].type = "tile";
+		canvas.add(pic_arr[i]);
+	}
+	for(var i = main_menu_disp_num; i<main_menu_num; i++){
+		pic_arr[i] = new graphics.imageElement(54,40,75,70,mainMenu[i].pic[0]);
+		pic_arr[i].type = "tile";
+		pic_arr[i].visible = false;
+		canvas.add(pic_arr[i]);
+	}
+  
+	canvas.refresh();
+}
+
+
+function showTextElement(){
+	for(var i = 0; i < mainMenu.length; i++){
+		text_arr[i] = [];
+		con[i] = new graphics.container(260,168,130,192);
+	    //con[i].bgColor = "transparent";
+        for(var j = 0; j<mainMenu[i].subMenu.length; j++){
+			text_arr[i][j] = new graphics.textElement(260,170+j*30,120,30,mainMenu[i].subMenu[j].name);
+			con[i].add(text_arr[i][j]);
+	    }
+		if(i != main_pos){
+			con[i].visible = false;
+	   	}
+		canvas.add(con[i],100+i);
+	}
+	focus = new graphics.imageElement(242,167,160,36,"focus.gif");
+	canvas.add(focus,80);
+	canvas.refresh();	
+}
+
+function showADElement(){
+	for(var i = 0; i < mainMenu.length; i++){
+	    // iPanel.debug("mainMenu["+i+"].subMenu.length="+mainMenu[i].subMenu.length);
+		AD_arr[i] = [];
+		AD_arr[i][0] = new graphics.imageElement(26,179,99,204,mainMenu[i].AD[0]);
+		AD_arr[i][1] = new graphics.imageElement(126,179,99,204,mainMenu[i].AD[1]);
+		AD_arr[i][2] = new graphics.imageElement(417,179,99,204,mainMenu[i].AD[2]);
+		AD_arr[i][3] = new graphics.imageElement(517,179,99,204,mainMenu[i].AD[3]);
+		canvas.add(AD_arr[i][0]);
+		canvas.add(AD_arr[i][1]);
+		canvas.add(AD_arr[i][2]);
+		canvas.add(AD_arr[i][3]);
+	}
+	
+	canvas.refresh();
+}
+
+
+function showEffect(){
+	
+	left_effect[0] = new graphics.effect("cutout","left",20,10);
+	left_effect[1] = new graphics.effect("move",164,32,54,32,20,10);
+	left_effect[2] = new graphics.effect("zoom",262,28,110,86,164,32,75,70,20,10);
+	left_effect[3] = new graphics.effect("zoom",384,32,75,70,262,28,110,86,20,10);
+	left_effect[4] = new graphics.effect("move",494,32,384,32,20,10);
+    left_effect[5] = new graphics.effect("cutin","right",20,10);
+
+	right_effect[0] = new graphics.effect("cutin","left",20,10);
+    right_effect[1] = new graphics.effect("move",54,32,164,32,20,10);
+	right_effect[2] = new graphics.effect("zoom",164,32,75,70,262,28,110,86,20,10);
+	right_effect[3] = new graphics.effect("zoom",262,28,110,86,384,32,75,70,20,10);
+	right_effect[4] = new graphics.effect("move",384,32,494,32,20,10);
+	right_effect[5] = new graphics.effect("cutout","right",20,10);
+	
+	init_effect = new graphics.effect("zoom",pic_arr[main_pos].x,pic_arr[main_pos].y,75,70,262,28,110,86,20,10);
+    pic_arr[main_pos].bindEffect(init_effect);
+    pic_arr[main_pos].execEffect();
+
+	//focus_effect = new Effect("move",537,3,537,3,10,10);	//------------为遮罩层加个动作，保证在最顶层
+	//setSubEffect();*/
+}
+
+function setSubEffect(){
+	//-------------------------------------------------------主菜单向右
+	/*right_in_effect = new graphics.effect("cutin","left",20,10);
+	right_out_effect = new graphics.effect("cutout","right",20,10);
+	//-------------------------------------------------------主菜单向左
+	left_in_effect = new graphics.effect("cutin","right",20,10);
+	left_out_effect = new graphics.effect("cutout","left",20,10);*/
+	opacity_up = new graphics.effect("changeOpacity",0,100,20,10);
+	opacity_down = new graphics.effect("changeOpacity",100,0,20,10);
+
+	for(var i = 0; i<6; i++){
+		bottom_in_effect[i] = new graphics.effect("move",242,167+i*30,242,167+(i+1)*30,20,10);
+		//top_in_effect[i] = new Effect("move",510,195+(i+1)*51,510,195+i*51,10,10);
+	}
+	for(var i = 6; i>0; i--){
+		top_in_effect[i] = new graphics.effect("move",242,167+i*30,242,167+(i-1)*30,20,10);
+	}
+	
+}
+
+function setADEffect(){
+	right_in_effect = new graphics.effect("cutin","left",20,10);
+	right_out_effect = new graphics.effect("cutout","right",20,10);
+	left_in_effect = new graphics.effect("cutin","right",20,10);
+	left_out_effect = new graphics.effect("cutout","left",20,10);
+}
+
+
+function action_effect(num){
+	var start;
+	var x;
+    sub_main_pos = main_pos;
+	main_pos = main_pos + num;	//---------对中间所定位的焦点附值
+	if(main_pos < 0) main_pos = main_length-1;
+	else if(main_pos > main_length - 1) main_pos = 0;
+	//iPanel.debug("tangxq text main_pos="+main_pos);
+	if(num_flag == 1){// right
+		main_menu_focus=(main_menu_num+main_menu_focus-1)%main_menu_num;
+		start=main_menu_focus;
+		x=start;
+		pic_arr[x].x=54; pic_arr[x].y=32; 
+		for(var i = 0; i <= main_menu_disp_num; i++){
+			pic_arr[x].visible = true;
+			pic_arr[x].bindEffect(right_effect[i]);
+			pic_arr[x].execEffect();
+			if(i==main_menu_disp_num) {
+				pic_arr[x].x=494; pic_arr[x].y=32; 
+			}
+			x = (x+1)%main_menu_num;
+		}
+		pic_arr[x].visible = false;
+		pic_arr[x].shutEffect();
+ 		
+		canvas.refresh();
+
+	}else{	//left
+		start=main_menu_focus;
+		x=start;
+		pic_arr[x].x=54; pic_arr[x].y=32; 
+		for(var i = 0; i<=main_menu_disp_num; i++){
+			pic_arr[x].visible = true;
+			pic_arr[x].bindEffect(left_effect[i]);
+			pic_arr[x].execEffect();
+			if(i==main_menu_disp_num) {
+				pic_arr[x].x=494; pic_arr[x].y=32; 
+			}
+			x = (x+1)%main_menu_num;
+		}
+		pic_arr[x].visible = false;
+		pic_arr[x].shutEffect();
+
+		canvas.refresh();
+		
+		main_menu_focus=(main_menu_focus+1)%main_menu_num;
+	}
+	setTimeout("action_sub_effect()",200);
+    setTimeout("action_AD_effect()",500);
+}
+
+function action_sub_effect(){
+	con[sub_main_pos].bindEffect(opacity_down);
+	con[sub_main_pos].execEffect();	
+	con[sub_main_pos].visible = false;
+			
+	con[main_pos].visible = true;	
+	con[main_pos].bindEffect(opacity_up);
+	con[main_pos].execEffect();
+}
+
+function action_AD_effect(){
+	if(num_flag == 1){// right
+		iPanel.debug("sub_main_pos = "+sub_main_pos);
+	    for(i=0; i<4; i++) {
+	    	AD_arr[sub_main_pos][i].bindEffect(right_out_effect);
+			AD_arr[sub_main_pos][i].execEffect();
+		}
+		setTimeout("right_in()",50);
+
+	}else{//left
+	    for(i=0; i<4; i++) {
+			AD_arr[sub_main_pos][i].bindEffect(left_out_effect);
+			AD_arr[sub_main_pos][i].execEffect();
+		}
+		setTimeout("left_in()",50);
+	}
+}
+
+function right_in(){
+    iPanel.debug("right in");
+    for(i=0; i<4; i++) {
+		AD_arr[main_pos][i].bindEffect(right_in_effect);
+    	AD_arr[main_pos][i].execEffect();
+    }
+}
+
+function left_in(){
+    iPanel.debug("left in");
+    for(i=0; i<4; i++) {
+		AD_arr[main_pos][i].bindEffect(left_in_effect);
+    	AD_arr[main_pos][i].execEffect();
+    }
+}
+
+function changeFocus(_num){
+    var temp_pos ;
+    var sublen=mainMenu[main_pos].subMenu.length;
+    temp_pos = sub_pos;
+	iPanel.debug("changeFocus, sub_pos="+sub_pos+",sublen="+sublen);
+	if(_num > 0) {//down
+		if(temp_pos<sublen-1) {
+	    	focus.bindEffect(bottom_in_effect[temp_pos]);
+			focus.execEffect();	
+ 			sub_pos = sub_pos + 1;
+			if(sub_pos>=sublen-1) {
+				sub_pos=sublen-1;
+			}
+		}
+	}
+	else if(_num < 0){//up
+		if(temp_pos>0) {
+			focus.bindEffect(top_in_effect[temp_pos]);
+			focus.execEffect();	
+ 			sub_pos = sub_pos - 1;
+			if(sub_pos<0) {
+				sub_pos=0;
+			}
+		}
+   }
+}
+//-->
+</SCRIPT>
+</HEAD>
+
+<BODY onload="init()">
+
+</BODY>
+</HTML>
+

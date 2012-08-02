@@ -1,0 +1,57 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.top1{
+  margin:10px;
+  padding:5px;
+}
+.div1{
+  border:1px solid black;
+  background-image:url("1.jpg");
+  background-repeat:no-repeat;
+  background-position:0 0;
+  width:372px;
+  height:284px;
+  -webkit-transition-duration:1s;
+}
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var color_flag=0;
+function change_background_position(){
+ if(color_flag==0){
+  document.getElementById("changeColor").style.backgroundPosition = "372 0";
+  color_flag=1;
+  }else{
+   document.getElementById("changeColor").style.backgroundPosition = "left top";
+   color_flag=0;
+   }
+}
+
+
+//-->
+</SCRIPT>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变background-position属性</span></p>
+<p>功能描述 : 用transition样式来使background-position的值在一定时间内渐变，渐变的过程开始于background-position值改变</p>
+<p>测试方法 :采用button的onclick时间来使页面上div的background-position改变，从而点击页面上的按钮就可以看到div背景位置变化的效果 </p>
+<p>验收标准 : 点击“change backgroundPosition”按钮，div背景图片从div中央位置移动到垂直方向居上，水平居中的位置，再次点击位置恢复；且渐变的时间为1秒</p>
+
+<hr>
+<input type="button" value="change backgroundPosition" onclick="change_background_position()" class="top1"><br>
+<div class="div1" id="changeColor"></div>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+
+<hr>
+
+<a href="transition_background_color.html">prev</a>/<a href="transition_border_color.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

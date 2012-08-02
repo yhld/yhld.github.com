@@ -1,0 +1,120 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.left1{
+  margin:10px;
+  padding:5px;
+}
+.right1{
+  position: absolute;
+  left:20%;
+  margin:10px;
+  padding:5px;
+}
+.top1{
+  position: absolute;
+  left:40%;
+  margin:10px;
+  padding:5px;
+}
+.bottom1{
+  position: absolute;
+  left:60%;
+  margin:10px;
+  padding:5px;
+}
+.div1{
+  border:2px solid orange;
+  position:absolute;
+  left:0px;
+  top:275px;
+  width:150px;
+  height:150px;
+  -webkit-transition-duration:1s;
+}
+.div2{
+  border:2px solid green;
+  position:absolute;
+  right:0px;
+  bottom:55px;
+  width:150px;
+  height:150px;
+  -webkit-transition-duration:1s;
+}
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var top_flag=0;
+var left_flag=0;
+var right_flag=0;
+var bottom_flag=0;
+function change_top(){
+  if(top_flag==0){
+    document.getElementById("changeposition1").style.top = "370px";
+	top_flag=1;
+  }else{
+    document.getElementById("changeposition1").style.top = "275px";
+	top_flag=0;
+	}
+
+}
+
+function change_left(){
+if(left_flag==0){
+  document.getElementById("changeposition1").style.left = "490px";
+  left_flag=1;
+  }else{
+    document.getElementById("changeposition1").style.left = "0px";
+	left_flag=0;
+	}
+}
+
+function change_right(){
+  if(right_flag==0){
+    document.getElementById("changeposition2").style.right = "640px";
+	right_flag=1;
+  }else{
+    document.getElementById("changeposition2").style.right = "0px";
+	right_flag=0;
+	}
+}
+
+function change_bottom(){
+ if(bottom_flag==0){
+  document.getElementById("changeposition2").style.bottom = "150px";
+  bottom_flag=1;
+  }else{
+    document.getElementById("changeposition2").style.bottom = "55px";
+	bottom_flag=0;
+	}
+}
+//-->
+</SCRIPT>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变bottom、left、right、top属性</span></p>
+<p>功能描述 : 用transition样式来使bottom、left、right、top的值在一定时间内渐变，渐变的过程开始于bottom、left、right、top这些值的改变</p>
+<p>测试方法 :采用button的onclick时间来使页面上div的bottom、left、right、top这4中属性值改变，从而点击页面上的按钮就可以看到div位置的相应移动 </p>
+<p>验收标准 : 点击“change left”按钮，橙色边框div就会从所在当前位置移动到页面的最右边，再点击一点就会回到最左边；点击“change right”按钮，绿色边框div会从当前位置移动到页面最左端，再点击一次位置回复；点击“change top”按钮，橙色边框div会从当前位置移动到页面的下水平分割线处，再点击一次位置回复；点击“change bottom”按钮，绿色边框div会从当前位置移动到上水平分割线处，再点击一次位置回复；且这些渐变时间均为1秒</p>
+
+<hr>
+<input type="button" value="change left" onclick="change_left()" class="left1">
+<input type="button" value="change right" onclick="change_right()" class="right1">
+<input type="button" value="change top" onclick="change_top()" class="top1">
+<input type="button" value="change bottom" onclick="change_bottom()" class="bottom1"><br>
+<div class="div1" id="changeposition1"></div>
+<div class="div2" id="changeposition2"></div>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR>
+
+<hr>
+
+<a href="transition_border_width.html">prev</a>/<a href="transition_color.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

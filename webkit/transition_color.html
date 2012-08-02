@@ -1,0 +1,74 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:12px;
+ color:red;
+ -webkit-transition-duration:1s;
+ }
+.textColor{
+  margin:10px;
+  padding:5px;
+}
+
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+
+function change_text_color(){
+  if(text_flag==0){
+    document.getElementById("changeColor").style.color = "blue";
+	text_flag=1;
+  }else{
+    document.getElementById("changeColor").style.color = "red";
+	text_flag=0;
+	}
+
+}
+
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变color属性</span></p>
+<p>功能描述 : 用transition样式来使color的值在一定时间内渐变，渐变的过程开始于color值的改变</p>
+<p>测试方法 :采用button的onclick时间来使页面上文字的color属性值改变，从而点击页面上的按钮就可以看到颜色的渐变效果 </p>
+<p>验收标准 : 点击“改变文字颜色”按钮，页面上的所有的文字都从红色变成蓝色，再点击一次则恢复成红色；且这些颜色的变化时间均为1秒</p>
+
+<hr>
+<input type="button" value="改变文字颜色" onclick="change_text_color()" class="textColor">
+<h1>这是h1大标题</h1>
+<p>此处为段落</p>
+<TABLE border="1px">
+<TR>
+	<TD>表格文字1</TD>
+	<TD>表格文字2</TD>
+</TR>
+<TR>
+	<TD>表格文字3</TD>
+	<TD>表格文字4</TD>
+</TR>
+</TABLE>
+<PRE>
+ 预定义文本
+     预定义文本
+	   预定义文本
+</PRE>
+<UL>
+	<LI>无序列表项1
+	<LI>无序列表项2
+</UL>
+
+<BR><BR><BR>
+
+<hr>
+
+<a href="transition_position.html">prev</a>/<a href="transition_font.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

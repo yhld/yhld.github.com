@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+h4{
+    background-color:  #400030;
+    color: white;
+    display: block;
+    margin: 10px;
+    padding: 10px;
+    border: 3px solid white;
+    font-size: 14px;
+    font-weight: bold;
+	width:300px;
+	-webkit-border-radius: 9px;
+}
+.image1{
+  -webkit-transform:scale(0.7);
+}
+.image2{
+  -webkit-transform-origin:0 0;
+  -webkit-transform:scale(0.7);
+}
+.image3{
+  -webkit-transform:skew(30deg);
+}
+.image4{
+  -webkit-transform-origin:10px 10px;
+  /*-webkit-transform:skew(30deg);*/
+}
+.image5{
+  -webkit-transform:rotate(15deg);
+}
+.image6{
+  -webkit-transform-origin:100% 100%;
+  -webkit-transform:rotate(15deg);
+}
+</style>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transform-origin</span></p>
+<p>功能描述 :transform是可以使页面上的元素做变换，比如移动、缩放等，而transform-origin则可以设置变换的中心点的坐标 </p>
+<p>测试方法 :弄一张没有做过变换的原始图片做参照物，另外设置各种不同的transform-origin测试其表现效果 </p>
+<p>验收标准 : 表格的左列写
+出了transform-origin的位置以及作的何种变换，表格的右列的图片执行了相应的变换，图片需要表现出与表格左列说明一致的效果</p>
+
+<hr>
+
+<TABLE border="1">
+<TR>
+	<TD><h4 id="des">原始图片</h4></TD>
+	<TD><img src="transform.jpg"></TD>
+</TR> 
+<TR>
+	<TD><h4 id="des">transform:scale(0.7)<br>变换原点默认，图片缩小0.7倍</h4></TD>
+	<TD><img src="transform.jpg" class="image1"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform-origin:0 0<br>transform:scale(0.7)<br>变换原点为图片左上顶点，图片缩小0.7倍</h4></TD>
+	<TD><img src="transform.jpg" class="image2"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform:skew(30deg)<br>变换原点默认，图片沿x轴倾斜30度</h4></TD>
+	<TD><img src="transform.jpg" class="image3"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform-origin:-100px -100px<br>transform:skew(30deg)<br>变换原点从图片中心点分别向左和向上移动100px，图片沿x轴倾斜30度</h4></TD>
+	<TD><img src="transform.jpg" class="image4"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform:rotate(15deg)<br>变换原点默认，图片旋转15度</h4></TD>
+	<TD><img src="transform.jpg" class="image5"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform-origin:100% 100%<br>transform:rotate(15deg)<br>变换原点为图片的右下顶点，图片旋转15度</h4></TD>
+	<TD><img src="transform.jpg" class="image6"></TD>
+</TR>
+</TABLE>
+<BR><BR><BR><BR><BR>
+
+<hr>
+
+<a href="transform_matrix.html">next</a><br>
+<a href="index_transform.html">return</a>
+</body>
+</html>

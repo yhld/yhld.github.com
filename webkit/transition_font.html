@@ -1,0 +1,96 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:10px;
+ font-weight:200;
+ -webkit-transition-duration:1s;
+ }
+.left1{
+  margin:10px;
+  padding:5px;
+}
+.right1{
+  position: absolute;
+  left:20%;
+  margin:10px;
+  padding:5px;
+}
+.top1{
+  position: absolute;
+  left:40%;
+  margin:10px;
+  padding:5px;
+}
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+var left_flag=0;
+
+function change_font_size(){
+  if(text_flag==0){
+    document.getElementById("changeColor").style.fontSize = "20px";
+	text_flag=1;
+  }else{
+    document.getElementById("changeColor").style.fontSize = "10px";
+	text_flag=0;
+	}
+
+}
+
+function change_font_weight(){
+if(left_flag==0){
+  document.getElementById("changeColor").style.fontWeight = "800";
+  left_flag=1;
+  }else{
+    document.getElementById("changeColor").style.fontWeight = "200";
+	left_flag=0;
+	}
+}
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变font属性</span></p>
+<p>功能描述 : 用transition样式来使font-size、font-weight的值在一定时间内渐变，渐变的过程开始于font-size、font-weight值的改变</p>
+<p>测试方法 :采用button的onclick事件来使页面上文字的属性font-size、font-weight值改变，从而点击页面上的按钮就可以看到字体大小和粗细的渐变效果 </p>
+<p>验收标准 : 点击“改变字体大小”按钮，页面上的所有的文字都从10变成20，再点击一次从20回到10；点击“改变字体粗细”按钮，页面上所有的文字的粗细从200变化到800，再点击一次从800回到200；且这些渐变时间均为1秒</p>
+
+<hr>
+<input type="button" value="改变字体大小" onclick="change_font_size()" class="fontSize">
+<input type="button" value="改变字体粗细" onclick="change_font_weight()" class="fontWeight">
+<h1>这是h1大标题</h1>
+<p>此处为段落</p>
+<TABLE border="1px">
+<TR>
+	<TD>表格文字1</TD>
+	<TD>表格文字2</TD>
+</TR>
+<TR>
+	<TD>表格文字3</TD>
+	<TD>表格文字4</TD>
+</TR>
+</TABLE>
+<PRE>
+ 预定义文本
+     预定义文本
+	   预定义文本
+</PRE>
+<UL>
+	<LI>无序列表项1
+	<LI>无序列表项2
+</UL>
+
+<BR><BR><BR>
+
+<hr>
+
+<a href="transition_color.html">prev</a>/<a href="transition_width_height.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

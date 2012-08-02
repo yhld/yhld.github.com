@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>测试</title>
+<style type="text/css">
+body{
+	margin:0px;padding:0px;
+	width:1280px;height:720px;
+}
+
+#title{ position:absolute;width:50px;height:50px;left:500px;background-color:black;
+	-webkit-animation:"bounce3" 4s cubic-bezier(1,0,1,1);	
+}
+
+@-webkit-keyframes bounce3 { 
+	from{ top:0px;}
+
+	to{ top:400px;}
+    }
+</style>
+
+<script src="js/keyEvent.js"></script>
+
+<script type="text/javascript">
+	document.onkeydown = grabEvent;
+	//document.onkeypress = grabEvent;
+	function grabEvent(event) {
+		var code = Event(event);
+		switch (code) {
+		case "KEY_UP":
+			
+			break;
+		case "KEY_DOWN":
+			
+			break;
+		case "KEY_LEFT":
+
+			break;
+		case "KEY_RIGHT":
+
+			break;
+		case "KEY_SELECT":
+			
+			break;
+		}
+	};
+	
+
+
+function $(id){
+	return document.getElementById(id);
+}
+
+
+</script>
+</head>
+<body >
+	<div>
+		
+		<div id="title"></div>
+	</div>
+	<div id="info"></div>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<TITLE>T型菜单</TITLE>
+<META NAME="Generator" CONTENT="EditPlus">
+<META NAME="Author" CONTENT="">
+<META NAME="Keywords" CONTENT="">
+<META NAME="Description" CONTENT="">
+<style>
+body{
+  background-image:url("index_bg.gif");
+}
+.div0{
+  background-image:url("pic7_0.gif");
+  background-repeat:no-repeat;
+  background-position:-90 0;
+  width:90px;
+  height:86px;
+  position:absolute;
+  left:54px;
+  top:32px;
+  -webkit-transform:scale(1);
+  -webkit-transition-duration:1s;
+}
+.div1{
+  background-image:url("pic1_0.gif");
+  background-repeat:no-repeat;
+  background-position:0 0;
+  width:90px;
+  height:86px;
+  position:absolute;
+  left:54px;
+  top:32px;
+  -webkit-transform:scale(1);
+  -webkit-transition-duration:1s;
+}
+.div2{
+  background-image:url("pic2_0.gif");
+  background-repeat:no-repeat;
+  background-position:0 0;
+  width:90px;
+  height:86px;
+  position:absolute;
+  left:164px;
+  top:32px;
+  -webkit-transform:scale(1);
+  -webkit-transition-duration:1s;
+}
+.div3{
+  background-image:url("pic3_0.gif");
+  background-repeat:no-repeat;
+  background-position:0 0;
+  width:90px;
+  height:86px;
+  position:absolute;
+  left:274px;
+  top:32px;
+  -webkit-transform:scale(1);
+  -webkit-transition-duration:1s;
+  
+}
+.div4{
+  background-image:url("pic4_0.gif");
+  background-repeat:no-repeat;
+  background-position:0 0;
+  width:90px;
+  height:86px;
+  position:absolute;
+  left:384px;
+  top:32px;
+  -webkit-transform:scale(1);
+  -webkit-transition-duration:1s;
+  
+}
+.div5{
+  background-image:url("pic5_0.gif");
+  background-repeat:no-repeat;
+  background-position:0 0;
+  width:90px;
+  height:86px;
+  position:absolute;
+  left:494px;
+  top:32px;
+  -webkit-transform:scale(1);
+  -webkit-transition-duration:1s;
+  
+}
+.div6{
+  background-image:url("pic6_0.gif");
+  background-repeat:no-repeat;
+  background-position:90 0;
+  width:90px;
+  height:86px;
+  position:absolute;
+  left:494px;
+  top:32px;
+  -webkit-transform:scale(1);
+  -webkit-transition-duration:1s;
+}
+</style>
+<script type = "text/JavaScript" src = "mainMenu.js"></script>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var main_pos = 2;		//主菜单焦点位置
+var main_menu_num=7;	//主菜单菜单项数
+var main_menu_disp_num=5;	//主菜单显示的项数
+var main_menu_focus=0; 	//主菜单第一张图片所对应的 pic_arr object的下标
+var main_length=7;     //主菜单个数
+var sub_main_pos;
+var pic_arr= new Array;  //主菜单数组
+
+document.onkeypress = grabEvent;
+document.onirkeypress = grabEvent;
+document.onkeydown = grabEvent;
+function grabEvent(e){
+    //alert(e.which);
+	switch(e.which){
+		case 39://right
+		    //alert("move_right");
+			move_action(-1);
+			break;
+		case 37:	//left
+			move_action(1);
+			break;
+		/*case 38:	//up
+			changeFocus(-1);
+			break;
+		case 40:	//down
+		  	changeFocus(1);
+			break;
+		case 13:	//select
+			window.location="next.html";
+			//window.location="http://192.168.10.252/cbqjlj/index.html";
+			break;*/
+	}
+}
+
+
+function changeScale(){
+   document.getElementById("div3").style.webkitTransform = "scale(1.2)";
+   
+
+}
+var i=0;
+var translate_distance;
+function move_action(num){
+ if(num== -1){
+      i++;
+	 // alert(i);
+	  translate_distance = i*110+"px";
+      document.getElementById("div0").style.backgroundPosition = "0 0";
+	  document.getElementById("div1").style.webkitTransform = "translateX("+translate_distance+")";
+	  document.getElementById("div2").style.webkitTransform = "translateX("+translate_distance+") scale(1.2)";
+	  document.getElementById("div3").style.webkitTransform = "translateX("+translate_distance+") scale(1)";
+	  document.getElementById("div4").style.webkitTransform = "translateX("+translate_distance+")";
+	  document.getElementById("div5").style.backgroundPosition = "90 0";
+
+   }
+   else if(num==1){
+      i--;
+	  translate_distance = i*110+"px";
+      document.getElementById("div1").style.backgroundPosition = "-90 0";
+	  document.getElementById("div2").style.webkitTransform = "translateX("+translate_distance+")";
+	  document.getElementById("div3").style.webkitTransform = "translateX(-110px) scale(1)";
+	  document.getElementById("div4").style.webkitTransform = "translateX(-110px) scale(1.2)";
+	  document.getElementById("div5").style.webkitTransform = "translateX(-110px)";
+	  document.getElementById("div6").style.backgroundPosition = "0 0";
+	  
+   }
+
+   /* var start;
+	var x;
+    sub_main_pos = main_pos;
+	main_pos = main_pos + num;	//---------对中间所定位的焦点附值
+	if(main_pos < 0) main_pos = main_length-1;
+	else if(main_pos > main_length - 1) main_pos = 0;
+	alert("main_pos="+main_pos);
+	
+	if(num == -1){// right
+		main_menu_focus=(main_menu_num+main_menu_focus-1)%main_menu_num;
+		start=main_menu_focus;
+		x=start;
+		for(var i = 0; i <= main_menu_disp_num; i++){
+			//pic_arr[x].visible = true;
+			pic_arr[x].execEffect(right_effect[i]);
+            document.getElementById("div"+i).style.backgroundPosition = "90 0";
+			x = (x+1)%main_menu_num;
+
+		}
+	 
+	  
+    } */
+}
+
+//-->
+</SCRIPT>
+</HEAD>
+
+<BODY onload="changeScale()">
+<div id="div0" class="div0"></div>
+<div id="div1" class="div1"></div>
+<div id="div2" class="div2"></div>
+<div id="div3" class="div3"></div>
+<div id="div4" class="div4"></div>
+<div id="div5" class="div5"></div>
+<div id="div6" class="div6"></div>
+</BODY>
+</HTML>

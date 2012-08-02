@@ -1,0 +1,125 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.left1{
+  position:absolute;
+  top:52%;
+  margin:10px;
+  padding:5px;
+}
+.right1{
+  position: absolute;
+  left:40%;
+  top:52%;
+  margin:10px;
+  padding:5px;
+}
+.top1{
+  position: absolute;
+  top:60%;
+  margin:10px;
+  padding:5px;
+}
+.bottom1{
+  position: absolute;
+  left:40%;
+  top:60%;
+  margin:10px;
+  padding:5px;
+}
+.table1{
+  position:absolute;
+  left:10%;
+  top:75%;
+  width:300px;
+}
+td{
+  padding:2px 2px 2px 2px;
+  -webkit-transition-duration:1s;
+}
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var left_flag=0;
+var right_flag = 0;
+var top_flag = 0;
+var bottom_flag = 0;
+function change_padding_left(){
+  if(left_flag==0){
+    document.getElementById("td1").style.paddingLeft = "20px";
+    left_flag=1;
+  }else{
+    document.getElementById("td1").style.paddingLeft = "2px";
+    left_flag=0;
+  }    
+}
+
+function change_padding_right(){
+ if(right_flag==0){
+  document.getElementById("td2").style.paddingRight = "20px";
+  right_flag=1;
+  }else{
+    document.getElementById("td2").style.paddingRight = "2px";
+    right_flag=0;
+  } 
+}
+
+function change_padding_top(){
+if(top_flag==0){
+  document.getElementById("td3").style.paddingTop = "20px";
+  top_flag=1;
+  }else{
+    document.getElementById("td3").style.paddingTop = "2px";
+    top_flag=0;
+  }
+}
+
+function change_padding_bottom(){
+if(bottom_flag==0){
+  document.getElementById("td4").style.paddingBottom = "20px";
+  bottom_flag=1;
+  }else{
+    document.getElementById("td4").style.paddingBottom = "2px";
+    bottom_flag=0;
+  }
+}
+//-->
+</SCRIPT>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变padding属性</span></p>
+<p>功能描述 : 用transition样式来使padding-left、padding-top、padding-right、padding-bottom的值在一定时间内渐变，渐变的过程开始于上述各个值改变</p>
+<p>测试方法 :采用button的onclick时间来使页面上table里的各个td的padding改变，从而点击页面上的按钮就可以看到表格单元格4个方向的内边距变化的效果 </p>
+<p>验收标准 : 点击“change padding left”按钮，页面表格的第1排第1列的单元格的左内边距变大，再次点击恢复；点击“change padding right”按钮，表格的第1排第2列的单元格的右内边距变大，再次点击恢复；点击“change padding top”按钮，表格第2排第1列的单元格的上内边距变大，再次点击恢复；点击“change padding bottom”按钮，表格第2排第2列的单元格的下内边距变大，再次点击恢复；且这些变化时间均为1秒</p>
+
+<hr>
+
+
+<input type="button" value="change padding left" onclick="change_padding_left()" class="left1"><br>
+<input type="button" value="change padding right" onclick="change_padding_right()" class="right1">
+<input type="button" value="change padding top" onclick="change_padding_top()" class="top1">
+<input type="button" value="change padding bottom" onclick="change_padding_bottom()" class="bottom1"><br>
+<TABLE border="1" class="table1">
+<TR>
+	<TD id="td1">这个单元格的左边距将发生变化</TD>
+	<TD id="td2">这个单元格的右边距将发生变化</TD>
+</TR>
+<TR>
+	<TD id="td3">这个单元格的上边距将发生变化</TD>
+	<TD id="td4">这个单元格的下边距将发生变化</TD>
+</TR>
+</TABLE>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR>
+
+<hr>
+
+<a href="transition_outline.html">prev</a>/<a href="transition_text_indent.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

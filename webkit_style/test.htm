@@ -1,0 +1,52 @@
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<title>My Page</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<link rel="stylesheet" href="../css/jquery.mobile-1.1.0.css" />
+	<script src="../js/jquery-1.7.2.js"></script>
+	<script src="../js/jquery.mobile-1.1.0.min.js"></script>
+	<script type="text/javascript">
+	$(document).bind('pageinit', function(){
+		$("#content").html("what a new ");
+		
+		$("#content").bind("swipeleft",function(){
+			$("#content").html("swipeleft");
+			
+		});
+		$("#content").bind("swiperight",function(){
+			$("#content").html("swiperight");
+			
+		});
+		$("#move").bind("swiperight",function(){
+			$("#move").width(400);		
+		});
+		$("#move").bind("swipeleft",function(){
+			$("#move").width(200);		
+		});
+		
+	});
+	
+	
+	</script>	
+	
+</head> 
+<body> 
+
+<div data-role="page">
+
+	<div data-role="header">
+		<h1>My Title</h1>
+	</div><!-- /header -->
+
+	<div id="content" data-role="content" style="background-color:#aaa;">	
+		<p>Hello world</p>		
+	</div><!-- /content -->
+	
+	<div id="move" style="position:relative;background-color: black;width:300px;height:30px;">
+	</div>
+	
+</div><!-- /page -->
+
+</body>
+</html>

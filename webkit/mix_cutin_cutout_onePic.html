@@ -1,0 +1,89 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.textColor{
+  margin:10px;
+  padding:5px;
+}
+.div1{
+  border:1px solid;
+  width:372;
+  height:284px;
+  position:absolute;
+  left:0px;
+  top:0px;
+  background-image:url("2-.jpg");
+  background-repeat:no-repeat;
+  background-position:0 0;
+  -webkit-transition-duration:1s;
+}
+.div2{
+  border:1px solid;
+  width:372;
+  height:284px;
+  position:absolute;
+  left:0px;
+  top:0px;
+  background-image:url("1.jpg");
+  background-repeat:no-repeat;
+  background-position:-372 0;
+  -webkit-transition-duration:1s;
+}
+
+#Layer1 {
+	position:absolute;
+	visibility:visible;
+	left:10px;
+	top:215px;
+	width:372px;
+	height:284px;
+	z-index:1;
+}
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var flag=0;
+function cutin_cutout(){
+  if(flag==0){
+  	document.getElementById("div1").style.backgroundPosition = "372 0";
+	document.getElementById("div2").style.backgroundPosition = "left top";
+	flag=1;
+  }else{
+  	document.getElementById("div1").style.backgroundPosition = "left top";
+	document.getElementById("div2").style.backgroundPosition = "-372 0";
+	flag=0;
+  }
+}
+
+//-->
+</SCRIPT>
+</head>
+<body>
+
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">用transition实现图片同时切入、切出效果</span></p>
+<p>功能描述 :cutin为切入效果，表示从元素原始位置的周围慢慢切入；cutout为切出效果，表示从元素原始位置切出。使用transition渐变background-position可以实现 </p>
+<p>测试方法 :首先在一个div内放一张背景图片，另外再在另外需要cutin效果的地方也设置一个div，第二个div的背景图与第一个的相同，这里的div的背景图设置在div外，接着通过onclick事件触发改变第一个div背景图片位置改为div外，同时设置第二个div背景图位置改为div所在位置，则通过transition样式的渐变效果，就可以看到一张图片同时切入、切出的效果</p>
+<p>验收标准 :点击“图片同时cutin cutout” 按钮，右边div的图片会从右边切出，同时左边div的图片会逐渐切入，当右边的div图片完全消失时左边div图片完全显示出来，再次点击恢复；所有渐变时间为1秒，渐变为匀速</p>
+
+<hr>
+<input type="button" value="图片同时cutin cutout" onClick="cutin_cutout()" class="textColor">
+<div id="Layer1">
+<div id="div1" class="div1"></div>
+<div id="div2" class="div2"></div>
+</div>
+
+
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<hr>
+
+<a href="mix_pageExchange_zoom.html">prev</a>/<a href="mix_.html">next</a><br>
+<a href="index_mix.html">return</a>
+</body>
+</html>

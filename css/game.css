@@ -1,0 +1,32 @@
+body{margin:0px;padding:0px;background-image:url("../img/game/game_bg.png"); }
+.gameRegion { position:absolute;margin:auto;}
+			
+.matrix5{left:285px;top:52px; width:711px;height:616px;background-image:url("../img/game/box_bg_5.png"); }
+.matrix6{left:267px;top:42px; width:747px;height:636px;background-image:url("../img/game/box_bg_6.png"); }
+.matrix7{left:264px;top:34px; width:753px;height:653px;background-image:url("../img/game/box_bg_7.png");}
+
+.gameRegion .box{position:absolute;width:71px;height:71px;		
+			-webkit-transition-duration:500ms;}
+.gameRegion .border{position:absolute;width:232px;height:220px;background-image:url("../img/box/ctl_border.png");
+		-webkit-transition-duration:300ms;opacity:0;}
+
+.loadingDiv{position:absolute;top:0px;left:0px;width:1280px;height:720px;z-index:100;
+		opacity:1;background-image:url("../img/game/loading_bg.png");}
+.loadingDivHidden{opacity:0;visibility:hidden;-webkit-transition-duration:1s;}	
+
+.popDiv {width:1280;height:720px;}
+.popDivShow {opacity:0.6;background-color:gray;visibility:visible;z-index: 100;}
+.popDivHidden {opacity:0;background-color:gray;visibility:hidden;z-index: 0;}
+
+.popDialog {position:absolute;top:190px;left:300px;;width:680px;height:328px;background-image:url("../img/pop/pop_bg.png");-webkit-transition-duration:0ms; }
+.popDialogShow{opacity:1;visibility:visible;z-index:101;}
+.popDialogHidden{opacity:0;visibility:hidden;z-index:0; }
+
+.victoryDialog {opacity:1;position:absolute;top:2px;left:300px;;width:668px;height:706px;z-index:101;visibility:visible; }
+.victoryDialogHidden {opacity:0;z-index:0;visibility:hidden; }
+.victoryAnimate1 {background-image:url("../img/pop/victory1.png");}
+.victoryAnimate2 {background-image:url("../img/pop/victory2.png");}
+.victoryAnimate3 {background-image:url("../img/pop/victory3.png");}
+.victoryAnimate4 {background-image:url("../img/pop/victory4.png");}
+.victoryAnimate5 {background-image:url("../img/pop/victory5.png");}
+

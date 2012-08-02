@@ -1,0 +1,58 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+h4{
+    background-color:  #400030;
+    color: white;
+    display: block;
+    margin: 10px;
+    padding: 10px;
+    border: 3px solid white;
+    font-size: 14px;
+    font-weight: bold;
+	width:300px;
+	-webkit-border-radius: 9px;
+}
+.image1{
+  -webkit-transform:rotate(30deg);
+}
+.image2{
+  -webkit-transform:rotate(-30deg);
+}
+</style>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transform:rotate(angle)</span></p>
+<p>功能描述 :transform是可以使页面上的元素做变换，比如移动、缩放等，而transform:rotate(angle)函数可以使页面元素旋转angle角度</p>
+<p>测试方法 :弄一张没有做过变换的原始图片做参照物，另外设置几组不同的transform:rotate(angle)来对比看效果 </p>
+<p>验收标准 : 表格的左列写
+出将作的何种变换，表格的右列的图片执行了相应的变换，图片需要表现出与表格左列说明一致的效果</p>
+
+<hr>
+
+<TABLE border="1">
+<TR>
+	<TD><h4 id="des">原始图片</h4></TD>
+	<TD><img src="transform.jpg"></TD>
+</TR> 
+<TR>
+	<TD><h4 id="des">transform:rotate(30deg)<br>图片顺时针旋转30度</h4></TD>
+	<TD><img src="transform.jpg" class="image1"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform:rotate(-30deg)<br>图片逆时针旋转30度</h4></TD>
+	<TD><img src="transform.jpg" class="image2"></TD>
+</TR>
+
+</TABLE>
+<BR><BR><BR><BR><BR>
+
+<hr>
+
+<a href="transform_scale.html">prev</a>/<a href="transform_skew.html">next</a><br>
+<a href="index_transform.html">return</a>
+</body>
+</html>

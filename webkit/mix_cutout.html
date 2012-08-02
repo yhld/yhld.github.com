@@ -1,0 +1,102 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.textColor{
+  margin:10px;
+  padding:5px;
+}
+.div1{
+  border:1px solid;
+  width:200px;
+  height:150px;
+  position:absolute;
+  left:10px;
+  top:215px;
+  background-image:url("123.jpg");
+  background-repeat: no-repeat;
+  background-position:0 0;
+  -webkit-transition-duration:1s;
+}
+.div2{
+  border:1px solid;
+  width:200px;
+  height:150px;
+  position:absolute;
+  left:220px;
+  top:215px;
+  background-image:url("123.jpg");
+  background-repeat: no-repeat;
+  background-position:0 0;
+  -webkit-transition-duration:1s;
+}
+.div3{
+  border:1px solid;
+  width:200px;
+  height:150px;
+  position:absolute;
+  left:10px;
+  top:375px;
+  background-image:url("123.jpg");
+  background-repeat: no-repeat;
+  background-position:0 0;
+  -webkit-transition-duration:1s;
+}
+.div4{
+  border:1px solid;
+  width:200px;
+  height:150px;
+  position:absolute;
+  left:220px;
+  top:375px;
+  background-image:url("123.jpg");
+  background-repeat: no-repeat;
+  background-position:0 0;
+  -webkit-transition-duration:1s;
+}
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function cutout_left(){
+    document.getElementById("div1").style.backgroundPosition = "-200 0";	
+}
+function cutout_right(){
+    document.getElementById("div2").style.backgroundPosition = "200 0";	
+}
+function cutout_top(){
+    document.getElementById("div3").style.backgroundPosition = "0 -200";	
+}
+function cutout_bottom(){
+    document.getElementById("div4").style.backgroundPosition = "0 200";	
+}
+//-->
+</SCRIPT>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">用transition实现切出效果</span></p>
+<p>功能描述 :cutout为切出效果，表示从元素原始位置的周围慢慢切出。使用transition渐变background-position可以实现 </p>
+<p>测试方法 :首先在一个div内弄一个背景图片，再通过onclick事件触发改变div背景图片位置为div外部的位置，则通过transition样式的渐变效果，就可以看到div的背景图片慢慢切出效果</p>
+<p>验收标准 :点击“cutout left” 按钮，第一个div框的图片会从左边切出，点击“cutout right”按钮，第二个div框的图片会从右边切出；点击“cutout top”按钮，第三个div框的图片会从上边切出；点击“cutout bottom”按钮，第四个div框的图片会从底边切出；所有渐变时间为1秒，渐变为匀速</p>
+
+<hr>
+<input type="button" value="cutout left" onclick="cutout_left()" class="textColor">
+<input type="button" value="cutout right" onclick="cutout_right()" class="textColor">
+<input type="button" value="cutout top" onclick="cutout_top()" class="textColor">
+<input type="button" value="cutout bottom" onclick="cutout_bottom()" class="textColor">
+<div id="div1" class="div1"></div>
+<div id="div2" class="div2"></div>
+<div id="div3" class="div3"></div>
+<div id="div4" class="div4"></div>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<hr>
+
+<a href="mix_cutin.html">prev</a>/<a href="mix_pageExchange_opacity.html">next</a><br>
+<a href="index_mix.html">return</a>
+</body>
+</html>

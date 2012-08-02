@@ -1,0 +1,87 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.textColor{
+  margin:10px;
+  padding:5px;
+}
+.image1{
+  opacity:1;
+  width:100px;
+  height:80px;
+  position:absolute;
+  left:10px;
+  top:205px;
+  -webkit-transition-duration:1s;
+}
+.image2{
+  opacity:1;
+  width:100px;
+  height:80px;
+  /*-webkit-transform:matrix(1,0,0,1,0,0);*/
+  -webkit-transform:translateY(0);
+  -webkit-transform:scale(1);
+  -webkit-transform-origin:0 0;
+  -webkit-transition-duration:1s;
+}
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+
+function transition_blendzoom(){
+  if(text_flag==0){
+    document.getElementById("image1").style.opacity = "0.3";
+	document.getElementById("image1").style.width = "250px";
+	document.getElementById("image1").style.height = "200px";
+	document.getElementById("image1").style.left = "300px";
+	document.getElementById("image1").style.top = "300px";
+	text_flag=1;
+  }else{
+    document.getElementById("image1").style.opacity = "1";
+	document.getElementById("image1").style.width = "100px";
+	document.getElementById("image1").style.height = "80px";
+	document.getElementById("image1").style.left = "10px";
+	document.getElementById("image1").style.top = "205px";
+	text_flag=0;
+	}
+
+}
+
+function transition_transform_blendzoom(){
+  if(text_flag==0){
+    document.getElementById("image2").style.opacity = "0.3";
+    document.getElementById("image2").style.webkitTransform = "translateY(100px) scale(2)";
+	text_flag=1;
+  }else{
+    document.getElementById("image2").style.opacity = "1";
+	document.getElementById("image2").style.webkitTransform = "translateY(0) scale(1)";
+	text_flag=0;
+	}
+
+}
+
+//-->
+</SCRIPT>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition单独或transform联合transition实现混合缩放</span></p>
+<p>功能描述 :blendzoom（混合缩放）指同时改变元素位置、大小和透明度。单独使用transition渐变left、top、width、height、opacity可以实现；或者使用transition渐变transform样式中的translate、scale函数以及元素opacity样式也可以实现；另外对于改变元素大小即元素的缩放还可以采用transition渐变元素的zoom属性来实现 </p>
+<p>测试方法 : 用按钮的onclick事件来触发元素位置、大小、透明度的样式值改变或transform函数内容改变，从而点击按钮就可以看到元素位置、大小透明度同时有渐变效果</p>
+<p>验收标准 :点击“单独使用transition的blendzoom”按钮，第一张图片会向右下方移动，同时放大且不透明度减小，再次点击恢复；点击“transform联合transition的blendzoom”按钮，第二张图片向正下方移动，同时缩小且不透明度减小，再次点击恢复；所以渐变的时间为1秒，且渐变为匀速 </p>
+
+<hr>
+<input type="button" value="单独使用transition的blendzoom" onclick="transition_blendzoom()" class="textColor">
+<input type="button" value="transform联合transition的blendzoom" onclick="transition_transform_blendzoom()" class="textColor"><br>
+<img src="5.gif" class="image1" id="image1"><br><BR><BR><BR><BR><BR>
+<img src="5.gif" class="image2" id="image2">
+<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+<hr>
+
+<a href="mix_cutin.html">next</a><br>
+<a href="index_mix.html">return</a>
+</body>
+</html>

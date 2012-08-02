@@ -1,0 +1,3609 @@
+<html>
+<head>
+<title>eventpage</title>
+<script language="javascript">
+var user = users.currentUser;
+user.orders.conflictInterval = 1;  //1 minutes confict
+user.orders.advanceRemind = 60;   //remind you before 60 seconds
+var volumeWidget;
+var widget_timeout = -1;
+var downoc=null;		//iPanel.pageWidgets.create("downoc", "ui://updatemsg.htm", 3, 0);
+
+document.onsystemevent = grabEvent;
+document.onkeypress = grabEvent;
+document.onirkeypress = grabEvent;
+function grabEvent(event){
+	var eventObj = Event.mapping(event);
+	iPanel.debug("eventpage eventObj.code = " + eventObj.code);
+	switch(eventObj.code){
+		case "KEY_BACK":
+			history.back();
+			break;
+		case "KEY_MENU":
+			iPanel.mainFrame.location.href="ui://index.htm";
+		case "DVB_TUNE_FAILED":
+		case "DVB_CABLE_CONNECT_FAILED":
+			//MsgManager.addMsg(NOTE_OBJ.no_signal);
+			//iPanel.overlayFrame.location.href="ui://no_signal.htm";
+			//iPanel.overlayFrame.focus();
+			break;
+		case "DVB_TUNE_SUCCESS":
+		case "DVB_CABLE_CONNECT_SUCCESS":
+			//MsgManager.delMsg(NOTE_OBJ.no_signal.id);
+			//iPanel.overlayFrame.close();
+			break;
+		case "DVB_LOCKED_CHNANEL":
+			MsgManager.addMsg(NOTE_OBJ.lock_channel);
+			break;
+		case "CHANNEL_NOT_FOUND":
+			MsgManager.addMsg(NOTE_OBJ.channel_not_found);
+			break;
+		case "CA_MESSAGE_OPEN":
+			var return_type = CA_OBJ.checkCAType(eventObj.args.modifiers);
+			if(return_type != -1){
+				MsgManager.addMsg(NOTE_OBJ.CA, eventObj.args.modifiers, return_type);
+			}
+			break;
+		case "CA_MESSAGE_CLOSE":
+			MsgManager.delMsg(NOTE_OBJ.CA.id);
+			break;
+		case "DVB_NIT_CHANGED":
+			MsgManager.addMsg(NOTE_OBJ.nit_change);
+			break;
+		case "DVB_CHANNEL_CHANGED":
+			MsgManager.addMsg(NOTE_OBJ.channel_change);
+			break;
+		case "DVB_PROGRAM_READY_OPEN":
+			if(Orders.checkReminder()){
+				MsgManager.addMsg(NOTE_OBJ.reminder);
+			}
+			break;
+		case "KEY_VOLUME_UP":
+			volumeWidget.soundUp();
+			return 0;
+			break;
+		case "KEY_VOLUME_DOWN":
+			volumeWidget.soundDown();
+			return 0;
+			break;
+		
+	}
+	return 0;
+}
+
+var CA_OBJ = {
+
+	ca_message: null,
+
+	getCaMessageTypeById: function(__id){
+		if(typeof(__id) == "number"){
+			this.ca_message = iPanel.misc.getMessageById(__id);
+			var ca_message_type = this.ca_message.type;
+			return ca_message_type;
+		}
+		else{
+			return -1;
+		}
+	},
+	
+	getCAMessageTextById: function(__id){
+		var ca_message_type = this.getCaMessageTypeById(__id);
+		var remind_txt = "";
+		switch(ca_message_type){
+			case 102:
+				remind_txt = "无法识别卡，不能使用";
+				break;
+			case 104:
+				remind_txt = "加扰节目，插入智能卡";
+				break;
+			case 108:
+				remind_txt = "节目级别高于设定观看级";
+				break;
+			case 109:
+				remind_txt = "节目要求机卡配对";
+				break;
+			case 110:
+				remind_txt = "没有授权";
+				break;
+			case 112:
+				remind_txt = "卡内金额不足";
+				break;
+			case 113:
+				remind_txt = "区域不正确";
+				break;
+			case 701:
+				var messageLabels = this.ca_message.labels;
+				for (var i = 0; i < messageLabels.length; i++) {
+					remind_txt += messageLabels[i].caption;
+				}
+				break;
+		}
+		return remind_txt;
+	},
+
+	checkCAType: function(__id){
+		var CAText = this.getCAMessageTextById(__id);
+		if(CAText == ""){
+			return -1;
+		}
+		else{
+			return this.getCaMessageTypeById(__id);
+		}
+	}
+
+};
+
+// 开机时创建一系列widget，并把其中一些添加为 全局的未征用广告窗口
+function check_widget_end(fun){
+	downoc = iPanel.pageWidgets.getByName("downoc");
+	var widgetNote = iPanel.pageWidgets.getByName("widgetNote");
+	var focusWidgetNote = iPanel.pageWidgets.getByName("focusWidgetNote");
+	var channel_list = iPanel.pageWidgets.getByName("channelList");
+	var program_list = iPanel.pageWidgets.getByName("programList");
+	var volume_widget = iPanel.pageWidgets.getByName("volumeWidget");
+	var widget_marquee = iPanel.pageWidgets.getByName("marquee_ad");
+	if(widgetNote != null && focusWidgetNote != null && channel_list != null && program_list != null && volume_widget != null&&widget_marquee != null){
+		widgetNote.discardEvent = 1;
+		widgetNote.withoutFocus = 1;
+		channel_list.moveTo(0, 0);
+		channel_list.resizeTo(1280, 720);
+		program_list.moveTo(0, 0);
+		program_list.resizeTo(1280, 720);
+		volume_widget.moveTo(295, 323);
+		volume_widget.resizeTo(605, 109);
+		iPanel.eventFrame.volumeWidget = volume_widget;
+		iPanel.eventFrame.appEventListener.widgetNote = widgetNote;
+		iPanel.eventFrame.appEventListener.focusWidgetNote = focusWidgetNote;
+		iPanel.debug("[eventFrame] all widgets (with AD) created, do the arg fun..."+fun);
+		//fun();//调用回调函数
+		if(typeof(fun)=="function")
+			fun();
+		else
+			eval(fun+"()");
+	}
+	else{
+		iPanel.debug("[eventFrame] there is some widget not created, delay 100ms to recheck...");
+		clearTimeout(widget_timeout);
+		widget_timeout = setTimeout(function(){check_widget_end(fun)}, 100);
+	}
+}
+
+function create_all_widget(fun){
+	//if(user.adEnable==1){
+		iPanel.debug("[eventFrame] began to create all ad widgets");
+		//非广告widget
+		iPanel.pageWidgets.create("downoc", "ui://updatemsg.htm", 3, 0);
+		iPanel.pageWidgets.create("widgetNote", "ui://widgetNote.htm", 3, 0);
+		iPanel.pageWidgets.create("focusWidgetNote", "ui://focusWidgetNote.htm", 3, 0);
+		iPanel.pageWidgets.create("channelList", "ui://channel_list.htm", 3, 0);
+		iPanel.pageWidgets.create("programList", "ui://pro_list.htm", 3, 0);
+		iPanel.pageWidgets.create("volumeWidget", "ui://volume_widget.htm", 3, 0);
+		iPanel.pageWidgets.create("marquee_ad","ui://widgetNote.htm",3, 0);
+	//}else{
+		iPanel.debug("[eventFrame] began to create all ad widgets");
+	//}
+	check_widget_end(fun);
+}
+
+/**
+ * 提示信息的对象
+ * @param int id: 唯一标识当前note对象的id号
+ * @param string name: 这个name的值要跟父级的属性名字相同
+ * @param int withoutFocus: 0表示可以获取焦点  1表示不能获取焦点
+ * @param string pageURL: 需要显示的提示信息页面
+ * @param int priority: 优先级 取值范围(1-255),数值越大优先级越高
+ * @param int modifiers: P2值
+ * @param int type: 添加这个属性主要是为了用于CA消息触发的时候，出现都是CA的提示信息但是是不同的CA type，需要重新显示
+ */
+var NOTE_OBJ = {
+	"reminder":	            {"id":1, "name":"reminder", "withoutFocus":0, "pageURL":"reminder.htm", "priority":10, "modifiers":-1, "type":1},
+	"CA":	                {"id":2, "name":"CA", "withoutFocus":1, "pageURL":"ca_note.htm", "priority":2, "modifiers":-1, "type":1},
+	"channel_not_found":	{"id":3, "name":"channel_not_found", "withoutFocus":1, "pageURL":"channel_not_found.htm", "priority":8, "modifiers":-1, "type":1},
+	"lock_channel":	        {"id":4, "name":"lock_channel", "withoutFocus":0, "pageURL":"lock_man.htm", "priority":4, "modifiers":-1, "type":1},
+	"no_signal":	        {"id":5, "name":"no_signal", "withoutFocus":1, "pageURL":"no_signal.htm", "priority":7, "modifiers":-1, "type":1},
+	"no_data":	            {"id":6, "name":"no_data", "withoutFocus":1, "pageURL":"no_data.htm", "priority":9, "modifiers":-1, "type":1},
+	"nit_change":	        {"id":7, "name":"nit_change", "withoutFocus":0, "pageURL":"nit_change.htm", "priority":6, "modifiers":-1, "type":1},
+	"channel_change":	    {"id":8, "name":"channel_change", "withoutFocus":0, "pageURL":"channel_change.htm", "priority":5, "modifiers":-1, "type":1}
+};
+
+var appEventListener = {
+	/**
+	 * 不能获取焦点的widget对象,对象需要在init页面创建好后进行赋值
+	 */
+	widgetNote: null,
+	widgetNoteShowFlag: false,
+
+	/**
+	 * 可以获取焦点的widget对象,对象需要在init页面创建好后进行赋值
+	 */
+	focusWidgetNote: null,
+	focusWidgetNoteShowFlag: false,
+
+	/**
+	 * widget的冲突处理，0：表示不进行冲突处理也就是widget提示框可以叠加  1：与0的情况相反
+	 * (注意目前要是处于不冲突的情况会存在问题)
+	 */
+	widgetConflictFlag: 1,
+	
+	/**
+	 * 显示消息提示框
+	 * @param int __id: 提示信息对象的id号
+	 */
+	showEventNote: function(__id){
+		var curr_note = this.getEventNoteById(__id);
+		if(typeof(curr_note) == "object"){
+			var url = curr_note.pageURL;
+			var modifiers = curr_note.modifiers;
+			if(modifiers != -1) url += "?" + modifiers;
+	
+			if(curr_note.withoutFocus == 0){
+				if(this.widgetConflictFlag == 1){
+					if(this.widgetNoteShowFlag){
+						this.widgetNoteShowFlag = false;
+						this.widgetNote.minimize();
+					}
+				}
+				if(this.focusWidgetNote != null){
+					this.focusWidgetNote.location.href = url;
+					if(!this.focusWidgetNoteShowFlag){
+						this.focusWidgetNoteShowFlag = true;
+						this.focusWidgetNote.show();
+					}
+				}
+			}
+			else{
+				if(this.widgetConflictFlag == 1){
+					if(this.focusWidgetNoteShowFlag){
+						this.focusWidgetNoteShowFlag = false;
+						this.focusWidgetNote.minimize();
+					}
+				}
+				if(this.widgetNote != null){
+					this.widgetNote.location.href = url;
+					if(!this.widgetNoteShowFlag){
+						this.widgetNoteShowFlag = true;
+						this.widgetNote.show();
+					}
+				}
+			}
+		}
+	},
+	
+	/**
+	 * 通过id获取相应的提示信息对象
+	 * @param int __id: 提示信息对象的id号
+	 */
+	getEventNoteById: function(__id){
+		for(var i in NOTE_OBJ){
+			if(__id == NOTE_OBJ[i].id){
+				return NOTE_OBJ[i];
+			}
+		}
+	},
+	
+	/**
+	 * 关闭消息提示框
+	 */
+	hideEventNote: function(){
+		if(this.widgetNoteShowFlag){
+			this.widgetNoteShowFlag = false;
+			this.widgetNote.minimize();
+			//this.widgetNote.location.href = "widgetNote.htm";
+		}
+		if(this.focusWidgetNoteShowFlag){
+			this.focusWidgetNoteShowFlag = false;
+			this.focusWidgetNote.minimize();
+			//this.focusWidgetNote.location.href = "focusWidgetNote.htm";
+		}
+	}
+	
+};
+
+/**
+ * 类名: PriorityQueue
+ * 功能: 描述一个优先级队列
+ * @type function , 描述优先级的判定规则, 作为排序的依据
+ */
+function PriorityQueue(fnCompare) {
+    this._items = [];
+    if (typeof fnCompare == "function") {
+        this._compare = fnCompare;
+    }
+}
+PriorityQueue.prototype = {
+    //---------------------------------------------------------------------
+    // Protected Properties
+    //---------------------------------------------------------------------
+    /**
+     * 用来给队列元素添加默认id的变量
+     * @type int
+     */
+    _maxId : 0,
+
+    //---------------------------------------------------------------------
+    // Protected Methods
+    //---------------------------------------------------------------------
+    /**
+     * 排序规则
+     * @type string/int
+     */
+    _compare : function (oValue1, oValue2) {
+        if (oValue1 < oValue2) {
+            return -1;
+        } else if (oValue1 > oValue2) {
+            return 1;
+        } else {
+            return 0;
+        }
+    },
+    /**
+     * 按优先级排序
+     */
+    _prioritize : function () {
+		if(this.size() > 1){
+        	this._items.sort(this._compare);
+		}
+    },
+
+    //---------------------------------------------------------------------
+    // Public Methods
+    //---------------------------------------------------------------------
+    /**
+     * 从队列首取出一个元素
+     */
+    get : function() {
+        return this._items.shift();
+    },
+    /**
+     * 获取队列中第i个元素
+     * @type int
+     */
+    item : function (iIndex) {
+        return this._items[iIndex];
+    },
+    /**
+     * 获取队列第一个元素
+     */
+    peek : function () {
+        return this._items[0];
+    },
+    /**
+     * 按优先级排序
+     * @type item object
+     */
+    add : function (oValue) {
+        if (typeof(oValue.id)=="undefined") oValue.id = this._maxId++;
+        var ret = this.check(oValue.id);
+        if (ret != -1){
+            this._items[ret] = oValue;
+        }
+        else{
+            this._items.unshift(oValue);
+        }
+        this._prioritize();
+    },
+    /**
+     * 从队列中寻找特定id的元素
+     * @type string/int
+     */
+    check : function (id) {
+        for (var i=0; i < this._items.length; i++) {
+            if (this._items[i].id == id) {
+                return i;
+            }
+        }
+        return -1;
+    },
+    /**
+     * 从队列中删除一个元素
+     * @type item object
+     */
+    remove : function (id) {
+        var ret = this.check(id);
+        if (ret != -1) {
+             this._items.splice(ret, 1);
+        }
+		return ret;
+    },
+    /**
+     * 获取队列长度
+     */
+    size : function () {
+        return this._items.length;
+    }
+};
+
+/**
+ * 对象名: MsgManager
+ * 功能: 消息队列管理
+ */
+var MsgManager = {
+	//---------------------------------------------------------------------
+	// Constants
+	//---------------------------------------------------------------------
+	/**
+	 * 默认优先级
+	 * @type int
+	 */
+	DEFAULT_PRIORITY : 3,
+	//---------------------------------------------------------------------
+	// Protected Properties
+	//---------------------------------------------------------------------
+	/**
+	 * 请求队列
+	 * @type PriorityQueue
+	 */
+	_msgQueue : new PriorityQueue(function (oMsg1, oMsg2) {
+		return oMsg2.priority - oMsg1.priority;
+	}),
+	/**
+	 * 正在显示的消息对象
+	 * @type message Object
+	 */
+	_currMsg : null,
+	//---------------------------------------------------------------------
+	// Public Methods
+	//---------------------------------------------------------------------
+	/**
+	 * 添加一个消息
+	 * @type message object
+	 */
+	addMsg : function (oMsg, __modifiers, __type) {
+		if(typeof(oMsg.priority)=="undefined") oMsg.priority = this.DEFAULT_PRIORITY;
+		if(typeof(__modifiers) == "number") oMsg.modifiers = __modifiers;
+		if(typeof(__type) == "number") oMsg.type = __type;
+		this._msgQueue.add(oMsg);
+		this.showMsg();
+	},
+	/**
+	 * 删除一个消息
+	 * @type message object
+	 */
+	delMsg : function (id) {
+		if(typeof(id) == "undefined") id = this._currMsg.id;
+		if(this._msgQueue.size() == 0){
+			this._currMsg = null;
+			return;
+		}
+		var ret = this._msgQueue.remove(id);
+		if (ret==-1) {
+			//iPanel.debug("del error!");
+			return;
+		}
+		this.showMsg();
+	},
+	/**
+	 * 显示消息
+	 */        
+	showMsg : function () {
+		if (this._msgQueue.size() == 0){
+			this.hideMsg();
+			return -1;
+		}
+		var oMsg = this._msgQueue.item(0);
+		if(this._currMsg != null && this._currMsg.id == oMsg.id && this._currMsg.type == oMsg.type) return 0;
+		if(typeof(oMsg) == "object"){
+			this._currMsg = oMsg;
+			iPanel.sendSimulateEvent(256, 9003, this._currMsg.id);
+			//appEventListener.showEventNote(this._currMsg.id);
+		}
+	},
+	/**
+	 * 检测当前的消息队列是否有需要显示的消息对象
+	 */
+	checkMsg : function() {
+		if(this._msgQueue.size() > 0){
+			this._currMsg = null;
+			this.showMsg();
+		}
+	},
+	/**
+	 * 隐藏消息
+	 */
+	hideMsg : function () {
+		//if (this._currMsg==null) return;
+		this._currMsg = null;
+		iPanel.sendSimulateEvent(256, 9004, 0);
+		//appEventListener.hideEventNote();
+	},
+	/**
+	 * 关闭消息
+	 */
+	closeMsg : function () {
+		if (this._currMsg==null) return;
+		this._msgQueue.get();
+		this._currMsg = null;
+		this.showMsg();
+	},
+	/**
+	 * 显示消息队列 (for test)
+	 */
+	showPQ : function () {
+		if (this._msgQueue.size() == 0) return -1;
+		var str = "";
+		for (var i=0; i<this._msgQueue.size(); i++) {
+			var oMsg = this._msgQueue.item(i);
+			str += '<div>(' + oMsg.priority + ',' + oMsg.id + ') ' + '</div>';
+		}
+		iPanel.debug(str);
+	}
+};
+
+var util = {
+	/**
+	 * util.date对象，用来放置与Date有关的工具
+	 */
+	date: {
+		/**
+		 * util.date.format方法，将传入的日期对象d格式化为formatter指定的格式
+		 * @param {object} d 传入要进行格式化的date对象
+		 * @param {string} formatter 传入需要的格式，如“yyyy-MM-dd hh:mm:ss”
+		 * @return {string} 格式化后的日期字符串，如“2008-09-01 14:00:00”							
+		 */
+		format: function(d, formatter) {
+		    if(!formatter || formatter == "")
+		    {
+		        formatter = "yyyy-MM-dd";
+		    }
+			
+			var weekdays = {
+				chi: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+				eng: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+			};
+		    var year = d.getYear().toString();
+		    var month = (d.getMonth() + 1).toString();
+		    var date = d.getDate().toString();
+		    var day = d.getDay();
+			var hour = d.getHours().toString();
+			var minute = d.getMinutes().toString();
+			var second = d.getSeconds().toString();
+
+			var yearMarker = formatter.replace(/[^y|Y]/g,'');
+			if(yearMarker.length == 2) {
+				year = year.substring(2,4);
+			} else if (yearMarker.length == 0) {
+				year = "";
+			}
+
+			var monthMarker = formatter.replace(/[^M]/g,'');
+			if(monthMarker.length > 1) {
+				if(month.length == 1) {
+					month = "0" + month;
+				}
+			} else if (monthMarker.length == 0) {
+				month = "";
+			}
+
+			var dateMarker = formatter.replace(/[^d]/g,'');
+			if(dateMarker.length > 1) {
+				if(date.length == 1) {
+					date = "0" + date;
+				}
+			} else if (dateMarker.length == 0) {
+				date = "";
+			}
+
+			var hourMarker = formatter.replace(/[^h]/g, '');
+			if(hourMarker.length > 1) {
+				if(hour.length == 1) {
+					hour = "0" + hour;
+				}
+			} else if (hourMarker.length == 0) {
+				hour = "";
+			}
+
+			var minuteMarker = formatter.replace(/[^m]/g, '');
+			if(minuteMarker.length > 1) {
+				if(minute.length == 1) {
+					minute = "0" + minute;
+				}
+			} else if (minuteMarker.length == 0) {
+				minute = "";
+			}
+
+			var secondMarker = formatter.replace(/[^s]/g, '');
+			if(secondMarker.length > 1) {
+				if(second.length == 1) {
+					second = "0" + second;
+				}
+			} else if (secondMarker.length == 0) {
+				second = "";
+			}
+		    
+		    var dayMarker = formatter.replace(/[^w]/g, '');
+		    var lang = user.UILanguage;
+		    var result = formatter.replace(yearMarker,year).replace(monthMarker,month).replace(dateMarker,date).replace(hourMarker,hour).replace(minuteMarker,minute).replace(secondMarker,second); 
+			if (dayMarker.length != 0) {
+				result = result.replace(dayMarker,weekdays[lang][day]);
+			}
+		    return result;
+		},
+        
+        getDate: function(offset) {
+            var d = new Date();
+            var year = d.getYear();
+            var month = d.getMonth();
+            var date = d.getDate();
+            var hour = d.getHours();
+            var minute = d.getMinutes();
+            var second = d.getSeconds();
+            
+            var dd = new Date(year, month, (date+offset), hour, minute, second);
+            return dd;
+        }
+	},
+	str: {
+		addZero: function(__str, __num){
+			__str = __str.toString();
+			for(var i = __str.length; i < __num; i++){
+				__str = "0"+__str;
+			}
+			return __str;
+		},
+		
+		getDuration: function(__t1, __t2){
+			var t1 = __t1.split(":");
+			var t2 = __t2.split(":");
+			var duration = 0;
+			duration = (Math.floor(t2[0])*60+Math.floor(t2[1])) - (Math.floor(t1[0])*60+Math.floor(t1[1]));
+			if(t1[0] > t2[0]) duration = duration + 1440;
+			return duration;
+		},
+		
+		millisecondToMinute: function(__mili){			
+			return parseInt((__mili/1000)/60);		
+		},
+
+		secondToStringTime: function(__sec){
+			var hour = Math.floor(__sec/3600);
+			var minute = Math.floor((__sec - hour*3600)/60);
+			var second = __sec - hour*3600 - minute*60;
+			hour = hour>9?hour:"0"+hour;
+			minute = minute>9?minute:"0"+minute;
+			second = second>9?second:"0"+second;
+			return hour+":"+minute+":"+second;
+		},
+		
+		/**
+		 * 根据传入的字符串日期和时间格式转换为毫秒的整数格式时间
+		 * @param string __str : 格式为“2008-09-01 14:00:00”的日期和时间字符串
+		 * @return long int : 毫秒的时间格式
+		 */
+		stringDateTimeToMiliTime: function(__str){
+			var y = Math.floor(__str.substring(0,4));
+			var m = Math.floor(__str.substring(5,7))-1;
+			var d = Math.floor(__str.substring(8,10));
+			var t_h = Math.floor(__str.substring(11,13));
+			var t_m = Math.floor(__str.substring(14,16));
+			var t_s = Math.floor(__str.substring(17,19));
+			var my_date = new Date();
+			my_date.setYear(y);
+			my_date.setMonth(m);
+			my_date.setDate(d);
+			my_date.setHours(t_h);
+			my_date.setMinutes(t_m);
+			my_date.setSeconds(t_s);
+			my_date.setMilliseconds(0);
+			return my_date.getTime();
+		},
+
+		/* ---------------------------
+		 功能 - 将输入字串前补add_string至设定宽度
+		 参数 -
+			arg1: 输入, 可以是字符串或数字
+			arg2: 欲补到多宽的字串
+			arg3: 欲补的字串，一般为一个字符
+		---------------------------*/
+		toPaddedString: function(input,width,add_string){
+			var str = input.toString();
+			while(str.length<width){
+				str = add_string + str;
+			}
+			return str;
+		}
+	}
+};
+
+
+/*
+ * showList对象的作用就是控制在页面列表数据信息上下滚动切换以及翻页；
+ * @__listSize    列表显示的长度；
+ * @__dataSize    所有数据的长度；
+ * @__position    数据焦点的位置；
+ * @__startplace  页面焦点Div开始位置的TOP值；
+ */
+function showList(__listSize, __dataSize, __position, __startplace, f){
+	this.listSize = __listSize;  //列表显示的长度；
+	this.dataSize = __dataSize;  //所有数据的长度；
+	this.position = __position;  //数据焦点的位置；
+	this.tempSize = this.dataSize<this.listSize?this.dataSize:this.listSize;
+	this.focusPos = this.dataSize-this.position<this.tempSize?this.tempSize-(this.dataSize-this.position):0; //页面焦点的位置；
+
+	this.listHigh = null;  //列表中每个行的高度，可以是数据或者数组，例如：40 或 [40,41,41,40,42];
+	this.focusDiv = null;  //页面焦点的ID名称或者定义为滑动对象，例如："focusDiv" 或 new showSlip("focusDiv",0,3,40);
+	this.focusPlace = new Array();  //记录每行页面焦点的位置值；
+	this.startPlace = __startplace;	 //页面焦点Div开始位置的TOP值；
+	
+	this.haveData = function(){}; //在显示列表信息时，有数据信息就会调用该方法；
+	this.notData = function(){}; //在显示列表信息时，无数据信息就会调用该方法；
+	//调用以上两个方法都会收到参数为{idPos:Num, dataPos:Num}的对象，该对象属性idPos为页面焦点的值，属性dataPos为数据焦点的值；
+	
+	this.focusUp  = function(){this.changeList(-1);}; //焦点向上移动；
+	this.focusDown= function(){this.changeList(1); }; //焦点向下移动；
+	this.pageUp   = function(){this.changePage(-1);}; //列表向上鄱页；
+	this.pageDown = function(){this.changePage(1); }; //列表向下鄱页；
+	
+	//开始显示列表信息
+	this.startShow = function(){
+		this.focusPlace[0]= this.startPlace;
+		if(typeof(this.listHigh)=="number"){
+			for(var i=1; i<this.listSize; i++) this.focusPlace[i] = this.listHigh*i+this.startPlace;
+		}else if(typeof(this.listHigh)=="object"){
+			for(var i=1; i<this.listSize; i++) this.focusPlace[i] = typeof(this.listHigh[i-1])=="undefined"?this.listHigh[this.listHigh.length-1]+this.focusPlace[i-1]:this.listHigh[i-1]+this.focusPlace[i-1];
+		}
+		if(typeof(this.focusDiv)=="string"){
+			if (typeof(f) == "object"){
+				f.document.getElementById(this.focusDiv).style.top = this.focusPlace[this.focusPos]
+			} else {
+				document.getElementById(this.focusDiv).style.top = this.focusPlace[this.focusPos];
+			}
+		}else{
+			this.focusDiv.tunePlace(this.focusPlace[this.focusPos]);
+		}
+		this.showList();
+	}
+	//切换数据焦点的位置
+	this.changeList = function(__num){
+		if(this.position+__num<0||this.position+__num>this.dataSize-1) return;
+		this.position += __num;
+		if(this.focusPos+__num<0||this.focusPos+__num>this.listSize-1){
+			this.showList();
+			//alert("yyyyyy");
+		}else{
+			//alert("xxxxxx");
+			this.changeFocus(__num);
+		}	
+	}
+	//切换页面列表翻页
+	this.changePage = function(__num){
+		var tempPos = this.position-this.focusPos;
+		if((tempPos==0 && __num<0)||(tempPos==this.dataSize-this.tempSize && __num>0)) return;
+		tempPos += __num*this.tempSize;
+		if(tempPos<0){
+			tempPos = 0;
+		}else if(tempPos>this.dataSize-this.tempSize){
+			tempPos = this.dataSize-this.tempSize;
+		}
+		if(this.focusPos!=0) this.changeFocus(this.focusPos*-1);
+		this.position = tempPos;
+		this.showList();
+	}
+	//切换页面焦点的位置
+	this.changeFocus = function(__num){
+		this.focusPos += __num;		
+		if(typeof(this.focusDiv)=="string"){
+			if (typeof(f) == "object"){
+				f.document.getElementById(this.focusDiv).style.top = this.focusPlace[this.focusPos];
+			} else {
+				document.getElementById(this.focusDiv).style.top = this.focusPlace[this.focusPos];
+			}
+		}else{
+			this.focusDiv.moveStart(__num/Math.abs(__num), Math.abs(this.focusPlace[this.focusPos-__num]-this.focusPlace[this.focusPos]));
+			///alert("yyy");
+		}
+	}
+	//显示列表信息
+	this.showList = function(){
+		var tempPos = this.position-this.focusPos;
+		//alert(tempPos+","+this.position);
+		for(var i=tempPos; i<tempPos+this.listSize; i++){
+			if(i<this.dataSize){
+				this.haveData({idPos:i-tempPos, dataPos:i});
+			}else{
+				this.notData({idPos:i-tempPos, dataPos:i});
+			}
+		}
+	}
+}
+
+/*
+ * showSlip对象的作用就是控制Div层的滑动；
+ * @__name  所要滑动对象的ID名称；
+ * @__sign  “0”表示上下滑动，“1”表示左右滑动；
+ * @__delay 此值是控制步长的，每次滑动的步长就是到终点所剩距离的__delay分之一,默认值(4)；
+ * @__time  滑动间隔时间,默认值(40)；
+ */
+function showSlip(__name, __sign, __delay, __time, f){
+	if (typeof(f) == "object"){
+		this.moveObj = f.document.getElementById(__name); //所要滑动的对象；
+	} else {
+		this.moveObj = document.getElementById(__name); //所要滑动的对象；
+	}
+	this.moveSize = 500;    //每一次滑动的距离；
+	this.moveType = 1;      //1表是正向滑动，-1表是反向滑动；
+	this.moveSign = __sign; //0表示top属性，1表示left属性；
+
+	this.endPlace  = (this.moveSign==0)?this.moveObj.style.top:this.moveObj.style.left; //滑动结束位置；
+	this.currPlace = this.endPlace; //滑动当前位置；
+	this.moveLoad = null;
+	this.spaceTime = __time;   //滑动间隔时间,默认值(40)；
+	this.delayValue= __delay;  //此值是控制步长的，每次滑动的步长就是到终点所剩距离的this.delayValue分之一,默认值(4)；
+	//开始滑动对象
+	this.moveStart = function(__type, __size){
+		iPanel.debug("__type f = " + __type);
+		iPanel.debug("__size f = " + __size);
+		this.moveStop();
+		this.moveType = __type;
+		this.moveSize = __size;
+		this.endPlace += this.moveSize*this.moveType;
+		iPanel.debug("xingzai endPlace = " + this.endPlace);
+		this.moveGoto();
+	}
+	//计算当前要滑动的位置
+	this.moveGoto = function(){
+		var tempStep = Math.ceil(Math.abs((this.endPlace-this.currPlace)/this.delayValue))*this.moveType; //计算步长
+		this.currPlace += tempStep;
+		if((this.moveType==-1&&this.currPlace<=this.endPlace)||(this.moveType==1&&this.currPlace>=this.endPlace)||tempStep==0){ //判断是否到达终点
+			this.currPlace = this.endPlace;
+			this.setcurrPlace();
+		}else{
+			//alert("eeeeeeee");
+			var self = this;
+			this.setcurrPlace();
+			this.moveLoad = window.setTimeout(function(){self.moveGoto();},this.spaceTime);
+		}
+	}
+	//设置滑动对象的位置
+	this.setcurrPlace = function(){
+		//alert("xingzai dd  = "+this.currPlace);
+		if(this.moveSign==0){
+			this.moveObj.style.top = this.currPlace;
+		}else{
+			this.moveObj.style.left= this.currPlace;
+
+		}
+	}
+	//调整对象位置，参数__num是将要调整位置的值
+	this.tunePlace = function(__num){
+		this.endPlace  = __num; 
+		this.currPlace = this.endPlace;
+		this.setcurrPlace();
+	}
+	//对象停止滑动
+	this.moveStop = function(){ window.clearTimeout(this.moveLoad);}
+}
+
+/*
+ * iPAddress对象的作用就是控制IP地址的输入；
+ * @data.idname  所要的ID名称；
+ * @data.ipstr   IP的设置；
+ * @data.typepos 此值是控制是否需要IP地址的协议；
+ */
+function iPAddress(data){
+	this.iPadd   = typeof(data.ipstr)=="undefined"?"":data.ipstr.split(".");//"200.125.254.168";
+	this.idName  = typeof(data.idname)=="undefined"?"":data.idname;//"list";
+	this.typePos = typeof(data.typepos)=="undefined"?null:data.typepos;//0;
+
+	this.f		 = typeof(data.f)=="undefined"?null:data.f;
+
+	this.colPos = new Array();
+	this.rowPos = 0;
+	this.isEdit = false;
+	this.idSize = this.typePos==null?12:13; 
+	this.protocol = ["http://","ftp://","https://","rss://","iptv://"];
+
+	this.delStyle   = function(){};
+	this.setStyle   = function(){};
+	this.openStyle  = function(){};
+	this.closeStyle = function(){};
+	this.showIPText();
+}
+
+iPAddress.prototype.showIPText = function(){
+	if(this.iPadd!=""){
+		for(var i=0; i<this.iPadd.length; i++) this.iPadd[i] = this.tuneText(this.iPadd[i],3);
+		this.colPos = this.iPadd.join("").split("");
+	}
+	if(this.typePos!=null) this.colPos.unshift(this.typePos);
+	for(var i=0; i<this.colPos.length; i++){
+		this.colPos[i] = parseInt(this.colPos[i]);
+		if(this.typePos!=null&&i==0){
+			this.setValue(this.protocol[this.colPos[i]],i);
+		}else{
+			this.setValue(this.colPos[i],i);
+		} 
+	}
+}
+
+iPAddress.prototype.change_number = function(__num){
+	var tempCol = this.colPos[this.rowPos];
+	if((!this.isEdit)||typeof(tempCol)=="undefined") return;
+	var tempStr = "";
+	var tempPos = this.typePos==null?this.rowPos+1:this.rowPos;
+	if(tempPos == 0){
+		var tempSize = this.protocol.length;
+		tempCol = ((tempCol+__num)%tempSize+tempSize)%tempSize;
+		tempStr = this.protocol[tempCol];
+	}else if(tempPos>0&&(tempPos-1)%3==0){
+		tempCol = ((tempCol+__num)%3+3)%3;
+		tempStr = tempCol;
+	}else if(tempPos>0&&(tempPos-1)%3>0){
+		tempCol = ((tempCol+__num)%10+10)%10;
+		tempStr = tempCol;
+	}
+	this.colPos[this.rowPos] = tempCol;
+	this.setValue(tempStr,this.rowPos);
+}
+
+iPAddress.prototype.change_focus = function(__num){
+	if(!this.isEdit) return;
+	this.delStyle();
+	this.rowPos = ((this.rowPos+__num)%this.idSize+this.idSize)%this.idSize;
+	this.setStyle();
+}
+
+iPAddress.prototype.inputValue = function(__num){
+	if(!this.isEdit) return;
+	var tempPos = this.typePos==null?this.rowPos+1:this.rowPos;
+	if(tempPos==0||((tempPos-1)%3==0&&__num>2)) return;
+	this.colPos[this.rowPos] = __num;
+	this.setValue(__num,this.rowPos);
+	this.change_focus(1);
+}
+
+iPAddress.prototype.openEdit = function(){
+	this.openStyle();
+	this.setStyle();
+	this.isEdit = true;
+}
+
+iPAddress.prototype.closeEdit = function(){
+	this.closeStyle();
+	this.delStyle();
+	this.rowPos = 0;
+	this.isEdit = false;
+}
+
+iPAddress.prototype.tuneText = function(tempStr, tempNum){
+	tempStr = tempStr.toString();
+	for(var i = tempStr.length; i<tempNum; i++) tempStr = "0"+tempStr;
+	return tempStr;
+}
+
+iPAddress.prototype.getAddress = function(){
+	var tempStr = "";
+	var tempNum = this.typePos==null?0:1;
+	for(var i=0; i<this.idSize; i++){
+		if((i-tempNum)%3==0&&(i-tempNum)!=0) tempStr += ".";
+		if(this.typePos!=null&&i==0){
+			tempStr += this.protocol[this.colPos[i]];
+		}else{
+			tempStr += typeof(this.colPos[i])=="undefined"?"0":this.colPos[i];
+		}
+	}
+	var tempArr = tempStr.substring(tempStr.lastIndexOf("/")+1,tempStr.length).split(".");
+	for(var i=0; i<tempArr.length; i++) tempArr[i] = parseFloat(tempArr[i]);
+	tempStr = tempStr.substring(0,tempStr.lastIndexOf("/")+1)+tempArr.join(".");
+	return tempStr;
+}
+
+iPAddress.prototype.setValue = function(tempStr, tempPos){
+	if (this.f) {
+		this.f.document.getElementById(this.idName+tempPos).innerHTML = tempStr;
+	} else {
+		document.getElementById(this.idName+tempPos).innerHTML = tempStr;
+	}
+}
+/**
+ +------------------------------------------------------------------------------
+ * 滚动条对象
+ +------------------------------------------------------------------------------
+ * @param {string} id 滚动条外层div的id
+ * @param {string} barId 滚动条可变部分的id
+ +------------------------------------------------------------------------------
+ */
+function ScrollBar(id, barId, f) {
+	if (typeof(f) == "object"){
+		this.obj = f.document.getElementById(id);
+		this.barObj = f.document.getElementById(barId);
+	} else {
+		this.obj = document.getElementById(id);
+		this.barObj = document.getElementById(barId);
+	}
+}
+
+ScrollBar.prototype.init = function(totalNum, pageSize, maxBarLength, startPos) {
+	this.startPos = startPos;
+	var percent = 1;
+	if (totalNum > pageSize) {
+		percent = pageSize / totalNum;
+	}
+	var barLength = percent * maxBarLength;
+	this.barObj.style.height = Math.round(barLength) + "px";
+	this.endPos = this.startPos + (maxBarLength - barLength);
+	if(totalNum > 1){
+		this.footStep = (this.endPos - this.startPos) / (totalNum - 1);
+	}
+	else{
+		this.footStep = 0;
+	}
+};
+
+ScrollBar.prototype.scroll = function(currPos) {
+	var tempPos = this.startPos + this.footStep * currPos;
+	this.obj.style.top = Math.round(tempPos) + "px";
+};
+
+/**
+ * 按键键值和系统消息值的映射
+ */
+var Event = {
+	mapping: function(__event){
+		var keycode = __event.which;
+		var code = "";
+		var args = {};
+		if(keycode>1000)
+			iPanel.debug("mapping: "+keycode);
+		if(keycode < 58 && keycode > 47){//数字键
+			args = {value: (keycode - 48), type: 0};
+			code = "KEY_NUMERIC";
+		} else {
+			var args = {modifiers: 0, value: keycode, type: 0};
+			switch(__event.which){
+				case 1://up
+					code = "KEY_UP";
+					break;
+				case 2://down
+					code = "KEY_DOWN";
+					break;
+				case 3://left
+					code = "KEY_LEFT";
+					break;
+				case 4://right
+					code = "KEY_RIGHT";
+					break;
+				case 13://enter
+					code = "KEY_SELECT";
+					break;
+				case 339://exit
+					code = "KEY_EXIT";
+					break;
+				case 340://back
+					code = "KEY_BACK";
+					break;
+				case 372://page up
+					code = "KEY_PAGE_UP";
+					break;
+				case 373://page down
+					code = "KEY_PAGE_DOWN";
+					break;
+				case 512:
+					code = "KEY_HOMEPAGE";
+					break;
+				case 513:
+					code = "KEY_MENU";
+					break;
+				case 514://EPG
+					code = "KEY_EPG";
+					break;
+				case 517://VOD
+					code = "KEY_VOD";
+					break;
+				case 561://输入法
+					code = "KEY_IME";
+					break;
+				case 562://资讯
+					code = "KEY_BROADCAST";
+					break;
+				case 563://tv
+					code = "KEY_TV";
+					break;
+				case 564://audio
+					code = "KEY_AUDIO";
+					break;
+				case 567://info
+					code = "KEY_INFO";
+					break;
+				case 570://喜爱键
+					code = "KEY_FAVORITE";
+					break;
+				case 595://音量+
+					code="KEY_VOLUME_UP";
+					break;
+				case 596://音量-
+					code="KEY_VOLUME_DOWN";
+					break;
+				case 597://静音键
+					code = "KEY_MUTE";
+					break;
+				case 598://声道
+					code = "KEY_VOLUMNE";
+					break;
+				case 832://red
+					code = "KEY_RED";
+					break;
+				case 833://green
+					code = "KEY_GREEN";
+					break;
+				case 834://yellow
+					code = "KEY_YELLOW";
+					break;
+				case 835://blue
+					code = "KEY_BLUE";
+					break;
+				case 8000:
+					code = "DVB_BEGIN_TUNE_DELIVERY";
+					break;
+				case 8001:
+					code = "DVB_TUNE_SUCCESS";
+					args.type = 1;
+					break;
+				case 8002:
+					code = "DVB_TUNE_FAILED";
+					args.type = 1;
+					break;
+				case 8010:
+					code = "DVB_SEARCH_FINISHED";
+					break;
+				case 8011:
+					code = "DVB_SEARCH_FAILED";
+					break;
+				case 8020:
+					code = "DVB_SERVICE_READY";
+					break;
+				case 8040:
+					code = "DVB_NIT_READY";
+					break;
+				case 8041:
+					code = "DVB_NIT_CHANGED";
+					args.type = 1;
+					break;
+				case 8050:
+					code = "DVB_PAT_TIMEOUT";
+					break;
+				case 8080:
+					code = "DVB_TDT_READY";
+					break;
+				case 8081:
+					code = "DVB_TDT_TIMEOUT";
+					break;
+				case 8100:
+					code = "DVB_EIT_SCHEDULE_READY";
+					args.modifiers = __event.modifiers;
+					break;
+				case 8101:
+					code = "DVB_EIT_TIMEOUT";
+					args.modifiers = __event.modifiers;
+					break;
+				case 8103:
+					code = "DVB_EIT_REFRESH_EVENT";
+					args.modifiers = __event.modifiers;
+					break;
+				case 8110:
+					code = "DVB_EIT_PF_READY";
+					args.modifiers = __event.modifiers;
+					break;
+		case 8501:
+			code = "DVB_PUSH_VOD_DOWNLOAD_FINISH";
+			args.modifiers = __event.modifiers;
+			args.type = 1;
+			break;
+		case 8502:
+			code = "DVB_PUSH_VOD_FILE_CHANGED";
+			args.modifiers = __event.modifiers;
+			args.type = 1;
+			break;
+		case 8023:
+			code = "DVB_OC_DOWNLOAD_START";
+			args.type = 1;
+			break;
+		case 8024:
+			code = "DVB_OC_DOWNLOAD_FINISHED";
+			args.modifiers = __event.modifiers;
+			args.type = 1;
+			break;
+		case 8380:
+			code = "DVB_UPGRADE_FORCE";
+			args.type = 1;
+			break;
+		case 8381:
+			code = "DVB_UPGRADE_MANUAL";
+			args.modifiers = __event.modifiers;
+			args.type = 1;
+			break;
+		case 8382:
+			code = "DVB_UPGRADE_SUCCESS";
+			args.type = 1;
+			break;
+		case 8383:
+			code = "DVB_UPGRADE_FAILED";
+			args.modifiers = __event.modifiers;
+			args.type = 1;
+		    break;
+				case 8130:
+					code = "DVB_NVOD_PF_FINISHED";
+					break;
+				case 8131:
+					code = "DVB_EIT_NVOD_SCHEDULE_FINISHED";
+					break;
+				case 8280:
+					code = "DVB_STARTUP_FINISH";
+					break;
+				case 8170:
+					code = "DVB_DATA_NAVIGATE_CHANGE";
+					args.modifiers = __event.modifiers;
+				    break;
+				case 8175:
+					code = "DVB_PROGRAM_INTERACTIVE";
+					args.modifiers = __event.modifiers;
+				    break;
+				case 8177:
+					code = "EIS_DVB_PUSH_MAIL_NOTIFY";
+					args.modifiers = __event.modifiers;
+					break;
+				case 8300:
+					code = "DVB_CHANNEL_OPEN";
+					args.modifiers = __event.modifiers;
+					break;
+				case 8301:
+					code = "DVB_CHANNEL_CLOSE";
+					break;
+				case 8302:
+					code = "DVB_LOCKED_CHNANEL";
+					args.type = 1;
+					break;
+				case 8303:
+					code = "DVB_CHANNEL_CHANGED";
+					args.type = 1;
+					break;
+				case 8330:
+					code = "DVB_PROGRAM_READY_OPEN";
+					args.type = 1;
+					break;
+				case 5550:
+					code = "DVB_CABLE_CONNECT_SUCCESS";
+					args.type = 1;
+					//iPanel.overlayFrame.close();
+					break;
+				case 5551:
+					code = "DVB_CABLE_CONNECT_FAILED";
+					args.type = 1;
+					//iPanel.overlayFrame.location.href="ui://no_signal.htm";
+					//iPanel.overlayFrame.focus();
+					break;
+				case 5300://插入智能卡
+					code = "CA_INSERT_SMARTCARD";
+					args.type = 1;
+					break;
+				case 5301://拔出智能卡
+					code = "CA_EVULSION_SMARTCARD";
+					args.type = 1;
+					break;
+				case 5350://Ca_message_open
+					code = "CA_MESSAGE_OPEN";
+					args.modifiers = __event.modifiers;
+					args.type = 1;
+					break;
+				case 5351://Ca_message_close
+					code = "CA_MESSAGE_CLOSE";
+					args.type = 1;
+					break;
+	
+				/*********************应用自定义系统消息******************/
+				case 9001:
+					code = "CHANNEL_LIST_REFRESH";
+					break;
+				case 9002:
+					code = "CHANNEL_NOT_FOUND";
+					args.type = 1;
+					break;
+				case 9003:
+					code = "SHOW_APP_NOTE_MESSAGE";
+					args.modifiers = __event.modifiers;
+					args.type = 1;
+					break;
+				case 9004:
+					code = "HIDE_APP_NOTE_MESSAGE";
+					args.type = 1;
+					break;
+				case 9005:
+					code = "MANUAL_CHECK_APP_NOTE";
+					args.type = 1;
+					break;
+				case 5700:
+					code = "EIS_TTS_READ_TEXT_FINISHED";
+					break;
+				case 8551:
+					code = "EIS_DVB_MOSAIC_READY";//
+					break;
+				case 8550:
+					code = "EIS_DVB_MOSAIC_EXPIRED";//
+					break;
+				/*****************************************************/
+
+				case 771:
+					iPanel.mainFrame.location.reload();
+					break;
+			}
+		}
+		return {code: code, args: args};
+	}
+};
+
+/**
+ * 自定义定义EPG对象
+ */
+function NEPG(){
+	this.currChannel = null;
+	this.currService = null;
+	this.currType = 1;
+	this.currChannelPosition = 0;
+	this.channelList = [];
+	this.programList = [];
+}
+NEPG.prototype = {
+	/**
+	 * 通知中间件进入EPG模式
+	 * @param int __mask: 数值型，表示某些特殊模式下需要搜索EIT表 比如：0x0f
+	 * @return void
+	 */
+	enter: function(__mask){
+		if(typeof(__type) == "number"){
+			iPanel.enterMode("EPG", __mask);
+		}
+		else{
+			iPanel.enterMode("EPG", 0x03);
+		}
+	},
+
+	/**
+	 * 设置EPG节目的获取日期
+	 * @param int __day: 0 表示当天 1 表示下一天 2 表示后天 ....
+	 * @return void
+	 */
+	setStartDate: function(__day){
+		if(typeof(__day) == "number"){
+			EPG.startDate = __day;
+		}
+		else{
+			EPG.startDate = 0;
+		}
+	},
+
+	/**
+	 * 获取当前EPG节目日期
+	 * @return string: 格式2008/12/02
+	 */
+	getStartDate: function(){
+		return EPG.startDate;
+	},
+
+	getOffChannel: function(__type){
+		if(typeof(__type) == "number"){
+			this.currType = __type;
+			this.currChannel = user.getOffChannel(__type);
+			return this.currChannel;
+		}
+		else{
+			this.currChannel = user.getOffChannel();
+			if(typeof(this.currChannel) == "object"){
+				this.currType = this.currChannel.type;
+				return this.currChannel;
+			}
+			else{
+				return null;
+			}
+		}
+	},
+
+	/**
+	 * 播放当前的频道，可以是全屏的播放也可以是小视频的播放
+	 * @param object __channel: 当前的频道对象
+	 * @return void
+	 * @note: 当频道被锁定后，会模拟给应用发送频道锁定的消息
+	 */
+	playCurrChannel: function(__channel){
+		if(typeof(__channel) == "object"){
+			this.currChannel = __channel;
+			if(this.currChannel.lock == 0 || (this.currChannel.lock !=0 && user.passwordEnable == 0)){
+				iPanel.debug("------------------playCurrChannel---------");
+				this.currService = this.currChannel.getService();
+				DVB.playAV(this.currService.frequency, this.currService.serviceId);
+			}
+			else{//频道被锁定
+				DVB.stopAV();
+				iPanel.sendSimulateEvent(256, 8302, 0);
+			}
+		}
+	},
+
+	getChannelList: function(__type){
+		this.currType = __type;
+		this.channelList = user.channels.getListByServiceType(__type);
+		return this.channelList;
+	},
+
+	getChannelListLength: function(){
+		return this.channelList.length;
+	},
+
+	getCurrChannelPosition: function(){
+		var currLength = this.getChannelListLength();
+		if(currLength > 0){
+			var currUserChannel = this.currChannel.userChannel;
+			var currType = this.currChannel.type;
+			for(var i = 0; i < currLength; i++){
+				var currChannel = this.channelList[i];
+				if(currChannel.userChannel == currUserChannel && currChannel.type == currType){
+					this.currChannelPosition = i;
+					break;
+				}
+			}
+			return this.currChannelPosition;
+		}
+		else{
+			return -1;
+		}
+	},
+
+	prepareProgram: function(__channel){
+		this.programList = [];
+		if(typeof(__channel) == "object"){
+			this.currChannel = __channel;
+			this.currService = this.currChannel.getService();
+			var flag = this.currService.preparePrograms();
+			return flag;
+		}
+		else{
+			return -1;
+		}
+	},
+
+	getPFPrograms: function(__id){
+		if(this.currService.TSId == __id){
+			var Pprogram = this.currService.presentProgram;
+			if(typeof(Pprogram) == "object"){
+				this.programList[0] = Pprogram;
+			}
+			var Fprogram = this.currService.followingProgram;
+			if(typeof(Pprogram) == "object"){
+				this.programList[1] = Fprogram;
+			}
+			return this.programList;
+		}
+		else{
+			return [];
+		}
+	},
+
+	getPresentProgram: function(__id){
+		if(this.currService.TSId == __id){
+			var Pprogram = this.currService.presentProgram;
+			if(typeof(Pprogram) == "object"){
+				return Pprogram;
+			}
+			else{
+				return null;
+			}
+		}
+		else{
+			return null;
+		}
+	},
+
+	/**
+	 * 获取当前节目的播放进度，返回值大于等于0的整数
+	 * @param int __barWidth: 必传参数, 进度条的总长度
+	 * @param object __program: 可选参数，如果不传默认就是当前播放的节目，如果传递就是指定的节目
+	 * (注意要使用这个方法，就一定要把util这个对象包含在同一个JS文件里面)
+	 */
+	getCurrProgramProgress: function(__barWidth, __program){
+		if(typeof(__barWidth) == "number"){
+			if(typeof(__program) == "object"){
+				var start_time = __program.startTime.substring(0, 5);
+				var end_time = __program.endTime.substring(0, 5);
+				var now_time = util.date.format(new Date(), "hh:mm");
+				if(start_time > now_time || end_time < now_time){
+					return 0;
+				}
+				else{
+					return parseInt(util.str.getDuration(start_time,now_time)/util.str.getDuration(start_time,end_time)*__barWidth);
+				}
+			}
+			else{
+				return 0;
+			}
+		}
+		else{
+			return 0;
+		}
+	},
+
+	getProgramList: function(__id){
+		if(typeof(__id) == "undefined" || this.currService.TSId == __id){
+			if(typeof(this.currService) == "object"){
+				var startPos = this.currService.presentProgramPosition;
+				if(startPos > 0){
+					var tempPrograms = this.currService.programs;
+					var tempLength = tempPrograms.length;
+					for(var i = startPos, j = 0; i < tempLength; i++, j++){
+						this.programList[j] = tempPrograms[i];
+					}
+				}
+				else{
+					this.programList = this.currService.programs;
+				}
+				return this.programList;
+			}
+			else{
+				return [];
+			}
+		}
+		else{
+			return [];
+		}
+	}
+
+};
+
+var Orders = {
+	/**
+	 * 根据指定的排序方式获取预订预订列表
+	 * @param int __type: 排序的方式 1：节目预定的先后顺序，默认方式  2：节目开始播放时间的先后顺序，离当前时间近的order对象排在列表前面
+	 * @return object
+	 */
+	getBySort: function(__type){
+		if(typeof(__type) == "number"){
+			return user.orders.getBySort(__type);
+		}
+		else{
+			return user.orders.getBySort(1);
+		}
+	},
+
+	/**
+	 * 根据参数获取不同类型的预定节目列表
+	 * @param int __type: 指定的类型
+	 *        0或无参数：表示得到前用户的所有类型的节目预定
+     *        1：表示得到前用户的视频类型的节目预定
+     *        2：表示得到前用户的音频类型的节目预定
+     *        3：表示得到前用户的图文类型的节目预定
+     *        4：表示得到前用户的NVOD类型的节目预定
+     *        128：表示得到当前用户的视音频类型的节目预定
+	 * @return object
+	 */
+	getOrders: function(__type){
+		if(typeof(__type) == "number"){
+			return user.getOrders(__type);
+		}
+		else{
+			return user.getOrders();
+		}
+	},
+
+	/**
+	 * 预订节目
+	 * @param object __program: 要预订的节目对象
+	 * @return int: -3 表示预订节目过多 -1 表示预订冲突 0 表示节目已经播放 1 表示预订成功 2 表示预订节目已经删除
+	 */
+	add: function(__program){
+		var orderPosition = __program.isOrdered;
+		if(orderPosition >= 0){
+			this.deleteOrder(orderPosition);
+			return 2;
+		}
+		else{
+			var order = new Order(__program);
+			var orderFlag = user.orders.add(order);
+			return orderFlag;//-1, 0, 1, -3
+		}
+	},
+
+	/**
+	 * 删除预订对象
+	 * @param int __pos: 预订对象在预订列表中的下标
+	 * @return void
+	 */
+	deleteOrder: function(__pos){
+		if(typeof(__pos) == "number"){
+			user.orders.delete(user.orders.getAt(__pos));
+		}
+	},
+
+	/**
+	 * 预订对象删除标志位处理
+	 * @param object __order: 预订对象
+	 * @return int: -1 设置失败 0 取消删除标志  1 添加删除标志
+	 */
+	action: function(__order){
+		if(typeof(__order) == "object"){
+			if(__order.deleteFlag == 1){
+				__order.deleteFlag = 0;
+				return 0;
+			}
+			else{
+				__order.deleteFlag = 1;
+				return 1;
+			}
+		}
+		else{
+			return -1;
+		}
+	},
+
+	/**
+	 * 检测预订提醒列表是否为空
+	 * @return boolean: true 不为空  false 为空
+	 */
+	checkReminder: function(){
+		var reminders = new Array();
+		reminders = user.orders.getReminderList();
+		if(reminders.length > 0){
+			return true;
+		}
+		else{
+			return false;
+		}
+	},
+
+	/**
+	 * 获取预订提醒列表
+	 * @return void
+	 */
+	getReminder: function(){
+		return user.orders.getReminderList();
+	},
+
+	/**
+	 * 删除所有预订冲突
+	 * @return void
+	 */
+	deleteConflicts: function(){
+		user.orders.deleteConflicts();
+	},
+
+	/**
+	 * 删除所有已经开始播放的预订节目列表
+	 * @return void
+	 */
+	deleteAllPlayingOrders: function(){
+		var playingProgram = new Array();
+		playingProgram = user.orders.getPlayingList();
+		var playingProgramLength = playingProgram.length;
+		if(playingProgramLength > 0){
+			for(var i = 0; i < playingProgramLength; i++){
+				user.orders.delete(playingProgram[i]);
+			}
+		}
+	},
+
+	/**
+	 * 删除标有删除标记的预定节目
+	 * @param int __type: 删除的类型
+	 *		0或无参数：表示删除所有的预定节目
+	 *		1：表示删除视频预定节目
+	 *		2：表示删除音频预定节目
+	 *		3：表示删除图文预定节目
+	 *		4：表示删除NVOD预定节目
+	 *		128：表示删除音视频预定节目
+	 *		129：表示删除标有删除标记的预定节目 其他预留扩充
+	 * @return void
+	 */
+	deleteAllFlag: function(__type){
+		if(typeof(__type) == "number"){
+			user.orders.deleteAll(__type);
+		}
+		else{
+			user.orders.deleteAll();
+		}
+	},
+
+	/**
+	 * 把用户预订相关的信息保存到Flash
+	 * @return void
+	 */
+	save: function(){
+		user.orders.save();
+	}
+	
+};
+
+var channelMan = {
+	/**
+	 * 频道喜爱设置
+	 * @param object __channel: 需要设置的频道对象
+	 * @return int: -1 表示设置失败  0 表示取消喜爱设置 1 表示设置喜爱
+	 */
+	actionFavorite: function(__channel){
+		if(typeof(__channel) == "object"){
+			if(__channel.favorite == 0){
+				__channel.favorite = 1;
+				return 1;
+			}
+			else{
+				__channel.favorite = 0;
+				return 0;
+			}
+		}
+		else{
+			return -1;
+		}
+	},
+
+	/**
+	 * 频道锁定设置
+	 * @param object __channel: 需要设置的锁定对象
+	 * @return int: -1 表示设置失败  0 表示取消锁定设置 1 表示设置锁定
+	 */
+	actionLock: function(__channel){
+		if(typeof(__channel) == "object"){
+			if(__channel.lock == 0){
+				__channel.lock = user.id;
+				return 1;
+			}
+			else if(__channel.lock == user.id){
+				__channel.lock = 0;
+				return 0;
+			}
+			else{
+				return -1;
+			}
+		}
+		else{
+			return -1;
+		}
+	},
+
+	/**
+	 * 频道删除设置
+	 * @param object __channel: 需要设置的删除对象
+	 * @return int: -1 表示设置失败  0 表示取消删除设置 1 表示设置删除
+	 */
+	actionDelete: function(__channel){
+		if(typeof(__channel) == "object"){
+			if(__channel.deleteFlag == 0){
+				__channel.deleteFlag = 1;
+				return 1;
+			}
+			else{
+				__channel.deleteFlag = 0;
+				return 0;
+			}
+		}
+		else{
+			return -1;
+		}
+	},
+	
+	/**
+	 * 频道隐藏设置
+	 * @param object __channel: 需要设置的隐藏对象
+	 * @return int: -1 表示设置失败  0 表示取消隐藏设置 1 表示设置隐藏
+	 */
+	actionHide: function(__channel){
+		if(typeof(__channel) == "object"){
+			if(__channel.hide == 0){
+				__channel.hide = 1;
+				return 1;
+			}
+			else{
+				__channel.hide = 0;
+				return 0;
+			}
+		}
+		else{
+			return -1;
+		}
+	},
+
+	/**
+	 * 移动频道一个步长
+	 * @param object __channel1: 需要移动的频道对象
+	 * @param object __channel2: 要移动到的频道对象
+	 * @return void
+	 */
+	moveChannelOneStep: function(__channel1, __channel2){
+		if(typeof(__channel1) == "object" && typeof(__channel2) == "object"){
+			var tempUserChannel = __channel2.userChannel;
+			__channel2.userChannel = __channel1.userChannel;
+			__channel1.userChannel = tempUserChannel;
+		}
+	},
+
+	/**
+	 * 移动频道多个步长
+	 * @param int __pos1: 移动前频道所处的位置
+	 * @param int __pos2: 移动后频道所处的位置
+	 * @param object __channelList: 需要移动的频道数组对象
+	 * @return void
+	 */
+	moveChannelMoreStep: function(__pos1, __pos2, __channelList){
+		if(typeof(__channelList) == "object"){
+			var channel1 = __channelList[__pos1];
+			var channel2 = __channelList[__pos2];
+			var temp_userChannel = channel2.userChannel;
+			if(__pos1 > __pos2){//向前移动
+				for(var i = __pos2; i < __pos1; i++){//把中间的频道的userChannel加1
+					__channelList[i].userChannel = __channelList[i].userChannel + 1;
+				}
+				for(var j = (__pos1-1); j >= __pos2; j--){
+					__channelList[j+1] = __channelList[j];
+				}
+			}
+			else{//向后移动
+				for(var i = (__pos1+1); i <= __pos2; i++){//把中间的频道的userChannel减1
+					__channelList[i].userChannel = __channelList[i].userChannel - 1;
+				}
+				for(var j = __pos1; j < __pos2; j++){
+					__channelList[j] = __channelList[j+1];
+				}
+			}
+			__channelList[__pos2] = channel1;
+			__channelList[__pos2].userChannel = temp_userChannel;
+		}
+	},
+
+	/**
+	 * 移动喜爱频道一个步长
+	 * @param object __channel1: 需要移动的喜爱频道对象
+	 * @param object __channel2: 要移动到的喜爱频道对象
+	 * @return void
+	 */
+	moveFavChannelOneStep: function(__channel1, __channel2){
+		if(typeof(__channel1) == "object" && typeof(__channel2) == "object"){
+			var tempPos = __channel2.favoritePosition;
+			__channel2.favoritePosition = __channel1.favoritePosition;
+			__channel1.favoritePosition = tempPos;
+		}
+	},
+
+	/**
+	 * 移动喜爱频道多个步长
+	 * @param int __pos1: 移动前喜爱频道所处的位置
+	 * @param int __pos2: 移动后喜爱频道所处的位置
+	 * @param object __channelList: 需要移动的喜爱频道数组对象
+	 * @return void
+	 */
+	moveFavChannelMoreStep: function(__pos1, __pos2, __channelList){
+		if(typeof(__channelList) == "object"){
+			var channel1 = __channelList[__pos1];
+			var channel2 = __channelList[__pos2];
+			var tempPos = channel2.favoritePosition;
+			if(__pos1 > __pos2){//向前移动
+				for(var i = __pos2; i < __pos1; i++){//把中间的频道的favoritePosition加1
+					__channelList[i].favoritePosition = __channelList[i].favoritePosition + 1;
+				}
+				for(var j = (__pos1-1); j >= __pos2; j--){
+					__channelList[j+1] = __channelList[j];
+				}
+			}
+			else{//向后移动
+				for(var i = (__pos1+1); i <= __pos2; i++){//把中间的频道的favoritePosition减1
+					__channelList[i].favoritePosition = __channelList[i].favoritePosition - 1;
+				}
+				for(var j = __pos1; j < __pos2; j++){
+					__channelList[j] = __channelList[j+1];
+				}
+			}
+			__channelList[__pos2] = channel1;
+			__channelList[__pos2].favoritePosition = tempPos;
+		}
+	},
+
+	/**
+	 * 除标有删除标记的所有频道
+	 * @return void
+	 */
+	deleteAllFlag: function(){
+		user.channels.deleteAll(1);
+	}
+
+	/**
+	 * 把用户频道操作后的信息保存到Flash中
+	 * @return void
+	 */
+	save: function(){
+		user.channels.save();
+	}
+};
+
+function search() {
+	this.currDelivery = null;
+	this.videoNumber = 0;
+	this.audioNumber = 0;
+	this.OCNumber = 0;
+
+	this.currVideoList = [];
+	this.currAudioList = [];
+	this.currOCList = [];
+
+	this.allVideoList = [];
+	this.allAudioList = [];
+	this.allOCList = [];
+}
+search.prototype = {
+	reset: function(){
+		this.currDelivery = null;
+		this.videoNumber = 0;
+		this.audioNumber = 0;
+		this.OCNumber = 0;
+		this.currVideoList = [];
+		this.currAudioList = [];
+		this.currOCList = [];
+	},
+	
+	auto: function(){
+		DVB.SI.startSearch();
+	},
+
+	/**
+	 * __fre: 2990000
+	 * __sym: 68750
+	 * __mod: 64-QAM
+	 */
+	manual: function(__fre, __sym __mod){
+		DVB.SI.startSearch(__fre, __sym __mod);
+	},
+
+	full: function(){
+		DVB.SI.startSearch("full");
+	},
+
+	initCurrDeliveryInfo: function(__delivery){
+		if(typeof(__delivery) == "object"){
+			this.reset();
+			this.currDelivery = __delivery;
+			var services = this.currDelivery.services;
+			var servicesLength = services.length;
+			for(var i = 0; i < servicesLength; i++){
+				var currService = services[i];
+				if(currService.type == 0x01){
+					this.videoNumber++;
+					this.allVideoList[this.allVideoList.length] = currService;
+					this.currVideoList[this.currVideoList.length] = currService;
+				}
+				else if(currService.type == 0x02){
+					this.audioNumber++;
+					this.allAudioList[this.allAudioList.length] = currService;
+					this.currAudioList[this.currAudioList.length] = currService;
+				}
+				else if(currService.type == 0x0C){
+					this.OCNumber++;
+					this.allOCList[this.allOCList.length] = currService;
+					this.currOCList[this.currOCList.length] = currService;
+				}
+			}
+		}
+	},
+	
+	getAlldeliveriesLength: function(){
+		return DVB.SI.deliveries.length;
+	},
+	
+	getCurrDelivery: function(){
+		return DVB.SI.currentDelivery;
+	},
+
+	getCurrDeliveryVideoNumber: function(){
+		return this.videoNumber;
+	},
+
+	getCurrDeliveryAudioNumber: function(){
+		return this.audioNumber;
+	},
+
+	getCurrDeliveryOCNumber: function(){
+		return this.OCNumber;
+	},
+
+	getCurrDeliveryVideoList: function(){
+		return this.currVideoList;
+	},
+
+	getCurrDeliveryAudioList: function(){
+		return this.currAudioList;
+	},
+
+	getCurrDeliveryOCList: function(){
+		return this.currOCList;
+	},
+
+	getAllVideoList: function(){
+		return this.allVideoList;
+	},
+
+	getAllAudioList: function(){
+		return this.allAudioList;
+	},
+
+	getAllOCList: function(){
+		return this.allOCList;
+	},
+
+	searchSuccess: function(){
+		iPanel.debug("searchSuccess and save");
+		DVB.SI.stopSearch();
+		DVB.SI.save();
+		users.save();
+	},
+
+	searchFail: function(){
+		iPanel.debug("searchFail and save");
+		DVB.SI.stopSearch();
+		DVB.SI.revert();
+		DVB.SI.save();
+		users.save();
+	}
+
+};
+
+/**
+ * 播放页面的对象封装，可以用于：play.html, music..html
+ */
+function play(){
+	this.currChannel = null;
+	this.currService = null;
+	this.currChannelPos = 0;
+	this.channelList = [];
+	this.channelListLength = 0;
+	this.channelListInitFinished = false;
+	this.openChannelTimeout = -1;
+
+	this.presentProgram = null;
+	this.followingProgram = null;
+
+	this.favoriteList = [];
+	this.favoriteListLength = 0;
+	this.currFavoritePos = 0;
+	this.currFavoriteChannel = null;
+	this.favChannelListInitFinished = false;
+
+	this.offBouquetId = 0;
+	this.bouquetStr = "";
+	this.currChannelInBouquet = true;
+	
+	/*可以根据需要更改下面的参数*/
+	this.channelNumberId = "channelNumber"; //存放频道号背景的区域id号
+	this.channelNumberInputId = "input";   //存放频道号值的区域id号
+	this.channelNumberType = "image"; //"text": 表示纯文本，"image": 表示图片方式
+	this.goToOpenTimer = 1500;        //输入频道号后延迟多少毫秒打开频道
+	this.maxChannelNumLength = 3;     //频道号最长的个数
+	this.channelNumTimer = 5000;      //频道号消失时间，单位毫秒
+	this.openChannelTimer = 0;        //当切换频道时去打开视频和音频的时间，单位毫秒, 0:即时打开 ,非0延迟多少毫秒打开
+
+	this.channelNumShowFlag = false;
+	this.channelNumTimeout = -1;
+	this.channelNumPos = 0;           //输入频道号时的当前位置，从左到右0~2
+	this.inputChannelNum = "";        //当前输入的频道号
+	this.inInputStatus = false;       //当前是否处于频道号输入的状态
+	this.goToOpenTimeout = -1;
+
+	//频道号图片0~9
+	this.channelNumberImages = [
+		'num0.gif',	
+		'num1.gif',	
+		'num2.gif',
+		'num3.gif',	
+		'num4.gif',	
+		'num5.gif',	
+		'num6.gif',	
+		'num7.gif',	
+		'num8.gif',	
+		'num9.gif'	
+	];
+	this.channelNullImage = 'num0.gif'; //用于显示输入频道时横杠“-”的图片
+
+	this.currMuteStatus = 0;
+	this.currMuteId = "mute_icon";
+	this.currMuteShowFlag = false;
+
+	this.currVolumeValue = 0;
+	this.currVolumeId = "volume";
+	this.currVolumeShowFlag = false;
+	this.volumeTimer = 3000;
+	this.volumeTimeout = -1;
+	/****************************/
+}
+play.prototype = {
+	/**
+	 * 获取关机频道
+	 */
+	getOffChannel: function(__type){
+		if(typeof(__type) == "number"){
+			this.currChannel = user.getOffChannel(__type);
+		}
+		else{
+			this.currChannel = user.getOffChannel();
+		}
+		return this.currChannel;
+	},
+
+	/**
+	 * 专门用来初始化当前的播放页面是否使用bouquet的方式进行切换,获取最后一次访问bouquet的id
+	 * @param __bouquetStr: 应用上面通过iPanel.setGlobalVar保存bouquet id的名称
+	 * @param __defaultId: 默认的bouquet id值
+	 */
+	initBouquetStatus: function(__bouquetStr, __defaultId){
+		if(typeof(__bouquetStr) == "string"){
+			this.bouquetStr = __bouquetStr;
+			if(typeof(__defaultId) == "undefined") __defaultId = 1001;
+			this.offBouquetId = iPanel.getGlobalVar(__bouquetStr) != '' ? parseInt(iPanel.getGlobalVar(__bouquetStr)) : __defaultId;
+		}
+	},
+
+	/**
+	 * 初始化频道的列表
+	 * @param __type: 频道的类型 1：视频  2：音频
+	 * @param __fav: 可选参数，如果要初始化为喜爱的频道列表，可以传入"favorite"字符串
+	 *               "all": 表示所有喜爱频道,包括视频和音频
+	 * 可以根据具体的需求来传入__fav参数来初始化相应的列表
+	 */
+	initChannelList: function(__type, __fav){
+		this.channelListInitFinished = false;
+		if(typeof(__type) == "number"){
+			if(typeof(__fav) == "string"){
+				if(__fav == "all"){
+					this.channelList = user.channels.getFavoriteAVList(0);
+				}
+				else{
+					if(__type == 1){
+						this.channelList = user.channels.getVideoList(__fav);
+					}
+					else if(__type == 2){
+						this.channelList = user.channels.getAudioList(__fav);
+					}
+				}
+			}
+			else{
+				if(__type == 1){
+					this.channelList = user.channels.getVideoList();
+				}
+				else if(__type == 2){
+					this.channelList = user.channels.getAudioList();
+				}
+			}
+		}
+		else{
+			this.channelList = user.channels.getVideoList();
+		}
+		this.channelListInitFinished = true;
+		this.channelListLength = this.channelList.length;
+	},
+	
+	/**
+	 * 获取频道的列表
+	 * @return object
+	 */
+	getChannelList: function(){
+		if(this.channelListInitFinished){
+			return this.channelList;
+		}
+		else{
+			return [];
+		}
+	},
+
+	/**
+	 * 获取喜爱列表
+	 * @param int __type: 指定频道的类型 1：视频类  2：音频类
+	 */
+	getFavoriteList: function(__type){
+		this.favChannelListInitFinished = false;
+		if(typeof(__type) == "number"){
+			if(__type == 1){
+				this.favoriteList = user.channels.getVideoList("favorite");
+			}
+			else if(__type == 2){
+				this.favoriteList = user.channels.getAudioList("favorite");
+			}
+		}
+		else{
+			this.favoriteList = user.channels.getVideoList("favorite");
+		}
+		this.favoriteListLength = this.favoriteList.length;
+		this.favChannelListInitFinished = true;
+		return this.favoriteList;
+	},
+	
+	/**
+	 * 初始化关机频道所属bouquet的频道列表
+	 * @param object __bouquetIds: 类型数组型，比如：[1001, 1002, 1003]
+	 */
+	initBouquetChannelList: function(__bouquetIds){
+		if(typeof(__bouquetIds) == "object"){
+			this.channelListInitFinished = false;
+			var get_flag = false;
+			for(var i = 0; i < __bouquetIds.length; i++){
+				if(this.currChannel.checkBouquet(__bouquetIds[i]) == 1){
+					get_flag = true;
+					this.currChannelInBouquet = true;
+					this.channelList = user.channels.bouquetSortByLogicChannel(__bouquetIds[i]);
+					this.offBouquetId = __bouquetIds[i];
+					iPanel.setGlobalVar(this.bouquetStr, this.offBouquetId)
+					break;
+				}
+			}
+			if(!get_flag){
+				this.currChannelInBouquet = false;
+				this.channelList = user.channels.bouquetSortByLogicChannel(this.offBouquetId);
+				if(this.channelList.length == 0){
+					this.channelList = user.channels.getVideoList();
+				}
+			}
+			this.channelListInitFinished = true;
+			this.channelListLength = this.channelList.length;
+		}
+		else{
+			return [];
+		}
+	},
+	
+	/**
+	 * 初始化当前频道在频道列表中的位置
+	 * @param object __channel: 频道对象
+	 */
+	initCurrChannelPos: function(__channel){
+		var curr_channel = null;
+		if(typeof(__channel) == "object"){
+			curr_channel = __channel;
+		}
+		else if(typeof(this.currChannel) == "object"){
+			curr_channel = this.currChannel;
+		}
+		if(curr_channel != null){
+			var off_channel_num = curr_channel.userChannel;
+			for(var i = 0; i < this.channelListLength; i++){
+				if(this.channelList[i].userChannel == off_channel_num){
+					this.currChannelPos = i;
+					break;
+				}
+			}
+		}
+	},
+
+	/**
+	 * 获取当前频道在频道列表中的位置
+	 * @param object __channel: 频道对象, 可选参数
+	 */
+	getCurrChannelPos: function(__channel){
+		if(typeof(__channel) == "object"){
+			this.currChannelPos = 0;
+			this.initCurrChannelPos(__channel);
+		}
+		return this.currChannelPos;
+	},
+
+	/**
+	 * 请求节目
+	 * @param object __channel: 指定的频道
+	 */
+	prepareProgram: function(__channel){
+		if(typeof(__channel) == "undefined") __channel = this.currChannel;
+		this.currService = __channel.getService();
+		this.currService.preparePrograms();
+	},
+	
+	/**
+	 * 获取当前正在播放的节目
+	 */
+	getPresentProgram: function(){
+		if(this.currService != null && typeof(this.currService) == "object"){
+			this.presentProgram = this.currService.presentProgram;
+			return this.presentProgram;
+		}
+	},
+	
+	/**
+	 * 获取即将播放的节目
+	 */
+	getFollowingProgram: function(){
+		if(this.currService != null && typeof(this.currService) == "object"){
+			this.followingProgram = this.currService.followingProgram;
+			return this.followingProgram;
+		}
+	},
+
+	/**
+	 * 获取当前节目的播放进度，返回值大于等于0的整数
+	 * @param int __barWidth: 必传参数, 进度条的总长度
+	 * @param object __program: 可选参数，如果不传默认就是当前播放的节目，如果传递就是指定的节目
+	 * (注意要使用这个方法，就一定要把util这个对象包含在同一个JS文件里面)
+	 */
+	getCurrProgramProgress: function(__barWidth, __program){
+		if(typeof(__barWidth) == "number"){
+			if(typeof(__program) == "undefined"){
+				__program = this.presentProgram;
+			}
+			if(typeof(__program) == "object"){
+				var start_time = __program.startTime.substring(0, 5);
+				var end_time = __program.endTime.substring(0, 5);
+				var now_time = util.date.format(new Date(), "hh:mm");
+				if(start_time > now_time || end_time < now_time){
+					return 0;
+				}
+				else{
+					return parseInt(util.str.getDuration(start_time,now_time)/util.str.getDuration(start_time,end_time)*__barWidth);
+				}
+			}
+			else{
+				return 0;
+			}
+		}
+		else{
+			return 0;
+		}
+	},
+	
+	/**
+	 * 频道加
+	 * @param int __sflag: 可选参数，不传递就表示显示频道号，如果传递 0：不显示  1：显示
+	 * @return boolean: true 表示切换成功  false 表示切换失败
+	 */
+	channelUp: function(__sflag){
+		if(this.channelListInitFinished){
+			if(this.channelListLength > 1){
+				this.currChannelPos++;
+				if(this.currChannelPos > (this.channelListLength - 1)){
+					this.currChannelPos = 0;
+				}
+				this.currChannel = this.channelList[this.currChannelPos];
+				if(this.openChannelTimer == 0){
+					this.doChannelOpen();
+				}
+				else{
+					var self = this;
+					clearTimeout(this.openChannelTimeout);
+					this.openChannelTimeout = setTimeout(function(){self.doChannelOpen();}, this.openChannelTimer);
+				}
+				if(typeof(__sflag) == "undefined" || __sflag == 1){
+					var channel_num = this.currChannel.userChannel;
+					this.initChannelNum(channel_num);
+					this.showChannelNumber();
+				}
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+		else{
+			return false;
+		}
+	},
+
+	/**
+	 * 频道减
+	 * @param int __sflag: 可选参数，不传递就表示显示频道号，如果传递 0：不显示  1：显示
+	 * @return boolean: true 表示切换成功  false 表示切换失败
+	 */
+	 channelDown: function(__sflag){
+		if(this.channelListInitFinished){
+			if(this.channelListLength > 1){
+				this.currChannelPos--;
+				if(this.currChannelPos < 0){
+					this.currChannelPos = this.channelListLength - 1;
+				}
+				this.currChannel = this.channelList[this.currChannelPos];
+				if(this.openChannelTimer == 0){
+					this.doChannelOpen();
+				}
+				else{
+					var self = this;
+					clearTimeout(this.openChannelTimeout);
+					this.openChannelTimeout = setTimeout(function(){self.doChannelOpen();}, this.openChannelTimer);
+				}
+				if(typeof(__sflag) == "undefined" || __sflag == 1){
+					var channel_num = this.currChannel.userChannel;
+					this.initChannelNum(channel_num);
+					this.showChannelNumber();
+				}
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+		else{
+			return false;
+		}
+	},
+
+	/**
+	 * 喜爱频道加
+	 * @param int __sflag: 可选参数，不传递就表示显示频道号，如果传递 0：不显示  1：显示
+	 * @return void
+	 */
+	favoriteUp: function(____sflag){
+		if(this.favChannelListInitFinished){
+			if(this.favoriteListLength > 1){
+				this.currFavoritePos++;
+				if(this.currFavoritePos > (this.favoriteListLength - 1)){
+					this.currFavoritePos = 0;
+				}
+				this.currFavoriteChannel = this.favoriteList[this.currFavoritePos];
+				if(this.openChannelTimer == 0){
+					this.doChannelOpen();
+				}
+				else{
+					var self = this;
+					clearTimeout(this.openChannelTimeout);
+					this.openChannelTimeout = setTimeout(function(){self.doChannelOpen();}, this.openChannelTimer);
+				}
+				if(typeof(__sflag) == "undefined" || __sflag == 1){
+					var channel_num = this.currFavoriteChannel.userChannel;
+					this.initChannelNum(channel_num);
+					this.showChannelNumber();
+				}
+			}
+		}
+	},
+
+	/**
+	 * 喜爱频道减
+	 * @param int __sflag: 可选参数，不传递就表示显示频道号，如果传递 0：不显示  1：显示
+	 * @return void
+	 */
+	favoriteDown: function(__sflag){
+		if(this.favChannelListInitFinished){
+			if(this.favoriteListLength > 1){
+				this.currFavoritePos--;
+				if(this.currFavoritePos < 0){
+					this.currFavoritePos = this.favoriteListLength - 1;
+				}
+				this.currFavoriteChannel = this.favoriteList[this.currFavoritePos];
+				if(this.openChannelTimer == 0){
+					this.doChannelOpen();
+				}
+				else{
+					var self = this;
+					clearTimeout(this.openChannelTimeout);
+					this.openChannelTimeout = setTimeout(function(){self.doChannelOpen();}, this.openChannelTimer);
+				}
+				if(typeof(__sflag) == "undefined" || __sflag == 1){
+					var channel_num = this.currFavoriteChannel.userChannel;
+					this.initChannelNum(channel_num);
+					this.showChannelNumber();
+				}
+			}
+		}
+	},
+	
+	/**
+	 * 获取当前频道
+	 */
+	getCurrChannel: function(){
+		return this.currChannel;
+	},
+
+	/**
+	 * 打开频道
+	 */
+	doChannelOpen: function(){
+		this.currChannel.open();
+	},
+
+	/**
+	 * 初始化当前的频道号
+	 * @param string or int __num: 指定的频道号
+	 */
+	initChannelNum: function(__num){
+		if(this.channelNumberType == "image"){
+			var re_num = this.generateChannelNum(__num);
+			this.$(this.channelNumberInputId).innerHTML = re_num;
+		}
+		else{
+			this.$(this.channelNumberInputId).innerText = __num;
+		}
+	},
+
+	/**
+	 *	根据用户输入的数字，转化成频道号图片
+	 *	@param string or int n: 要进行转化的数字字符串
+	 *	@return string: 转化后的图片HTML代码
+	 */
+	generateChannelNum: function(__num){
+		__num = __num.toString();
+		var channelNum = '';
+		for (var i = 0; i < __num.length ; i++) {
+			var number = __num.substr(i, 1);
+			if (number != '-') {
+				channelNum += '<img src="'+this.channelNumberImages[parseInt(number)]+'">';
+			} else {
+				channelNum += '<img src="'+this.channelNullImage+'">';
+			}
+		}
+		return channelNum;
+	},
+
+	/**
+	 * 显示频道号
+	 */
+	showChannelNumber: function(){
+		var self = this;
+		clearTimeout(this.channelNumTimeout);
+		this.channelNumTimeout = setTimeout(function(){self.hideChannelNubmer();}, this.channelNumTimer);
+		if(!this.channelNumShowFlag){
+			this.channelNumShowFlag = true;
+			this.$(this.channelNumberId).style.visibility = "visible";
+		}
+	},
+
+	/**
+	 * 隐藏频道号
+	 */
+	 hideChannelNubmer: function(){
+		clearTimeout(this.channelNumTimeout);
+		if(this.channelNumShowFlag){
+			this.channelNumShowFlag = false;
+			this.$(this.channelNumberId).style.visibility = "hidden";
+		}
+	},
+
+	/**
+	 *	获取用户输入的数字，并显示在屏幕上
+	 *	@param string or int __num: 通过eventHandler获取的用户输入的数字
+	 *	@return void
+	 */
+	getInputChannelNumber: function(__num){
+		if(this.channelNumPos < this.maxChannelNumLength){
+			this.inInputStatus = true;
+			this.channelNumPos++;
+			this.inputChannelNum += __num;
+			this.showChannelNumber();
+			this.initChannelNum(this.paddingInputNumber(this.inputChannelNum));
+			var self = this;
+			clearTimeout(this.goToOpenTimeout);
+			this.goToOpenTimeout = setTimeout(function(){self.goChannelImmediately();}, this.goToOpenTimer);
+		}
+	},
+
+	/**
+	 *	立即切换到用户当前输入的频道
+	 */
+	goChannelImmediately: function(){
+		this.inInputStatus = false;
+		clearTimeout(this.goToOpenTimeout);
+		if(this.inputChannelNum == ""){
+			this.hideChannelNubmer();
+			return;
+		}
+		var curr_channel = user.channels.getChannelByNum(Math.floor(this.inputChannelNum));
+		this.inputChannelNum = "";
+		this.channelNumPos = 0;
+		if(typeof(curr_channel) != 'undefined' && curr_channel.hide == 0){
+			this.hideChannelNubmer();
+			if(this.currChannel.type == curr_channel.type){
+				this.currChannel = curr_channel;
+				curr_channel.open();
+				iPanel.sendSimulateEvent(256, 9001, 0);
+			}
+			else{
+				curr_channel.open();
+			}
+		}
+		else{
+			//this.showChannelNumber();
+			iPanel.sendSimulateEvent(256, 9002, 0);
+		}
+	},
+
+	/**
+	 *	当输入的字符串进行处理，不足3位，在前面补“-”
+	 *	@param string or int __num: 要进行转化的数字字符串
+	 *	@return string: 处理后的字符串
+	 */
+	paddingInputNumber: function(__num){
+		var str = __num.toString();
+		var str_length = str.length;
+		for (var i = 0; i< (this.maxChannelNumLength - str_length); i++) {
+			str = "-" + str;
+		}
+		return str;
+	},
+
+	/**
+	 *  当用户发现输入的频道号有错后，可以通过按键删除前一个频道号
+	 *  @param string or int n: 要进行转化的数字字符串
+	 *  @return string: 处理后的字符串
+	 */
+	deleteFrontNumber: function() {
+		var str = this.inputChannelNum;
+		if(str.length > 0){
+			str = str.substring(0, str.length-1);
+			this.inputChannelNum = str;
+			this.channelNumPos--;
+			this.showChannelNumber();
+			this.initChannelNum(this.paddingInputNumber(this.inputChannelNum));
+			var self = this;
+			clearTimeout(this.goToOpenTimeout);
+			this.goToOpenTimeout = setTimeout(function(){self.goChannelImmediately();}, this.goToOpenTimer);
+		}
+	},
+
+	/**
+	 * 打开上一个频道
+	 * @return boolean: true: 播放成功  false: 播发失败
+	 */
+	playLastChannel: function(){
+		var curr_channel = user.lastChannel();
+		if(typeof(curr_channel) != "undefined"){
+			this.currChannel = curr_channel;
+			var channel_num = this.currChannel.userChannel;
+			this.initChannelNum(channel_num);
+			this.showChannelNumber();
+			curr_channel.open();
+			return true;
+		}
+		else{
+			return false;
+		}
+	},
+	
+	/**
+	 * 可运用于在playList和PF List上面通过调用这个接口来打开相应的频道或者节目
+	 * @param int __num: 指定的频道号
+	 * @param int __sflag: 可选参数 0：表示不显示频道号  1：显示频道号
+	 */
+	openChannelByNum: function(__num, __sflag){
+		if(typeof(__num) != "undefined"){
+			var curr_channel = user.channels.getChannelByNum(__num);
+			if(typeof(curr_channel) != "undefined"){
+				if(curr_channel.type == this.currChannel.type){
+					this.currChannel = curr_channel;
+					curr_channel.open();
+					if(typeof(__sflag) == "undefined" || __sflag == 1){
+						var channel_num = this.currChannel.userChannel;
+						this.initChannelNum(channel_num);
+						this.showChannelNumber();
+					}
+					iPanel.sendSimulateEvent(256, 9001, 0);
+				}
+				else{
+					curr_channel.open();
+				}
+			}
+		}
+	},
+
+	/**
+	 * 获取静音的初始状态 0：表示正常  1：表示静音
+	 */
+	getMuteStatus: function(){
+		this.currMuteStatus = media.sound.isMute;
+		return this.currMuteStatus;
+	},
+	
+	/**
+	 * 检测是否处于静音的状态
+	 * @param function __showFn: 提供另外一种显示静音图标的方式，可选参数
+	 */
+	checkMuteStatus: function(__showFn){
+		if(this.currMuteStatus == 1){
+			this.showMute(__showFn);
+		}
+	},
+
+	/**
+	 * 操作静音
+	 * @param int __value: (0<=__value<=1)，可选参数，0：表示转成正常状态，1：表示转成静音状态
+	 * @return int: 1: 表示处于静音状态  0：表示正常
+	 */
+	actionMute: function(__value){
+		if(typeof(__value) == "number" && __value <= 1 && __value >=0) this.currMuteStatus = 1 - __value;
+		if(this.currMuteStatus == 0){
+			this.currMuteStatus = 1;
+			media.sound.mute();
+			this.showMute();
+		}
+		else{
+			this.currMuteStatus = 0;
+			media.sound.resume();
+			this.hideMute();
+		}
+		return this.currMuteStatus;
+	},
+
+	/**
+	 * 显示静音图标
+	 * @param function __showFn: 提供另外一种显示静音图标的方式，可选参数
+	 */
+	showMute: function(__showFn){
+		if(!this.currMuteShowFlag){
+			this.currMuteShowFlag = true;
+			if(typeof(__showFn) == "function"){
+				__showFn();
+				return;
+			}
+			else{
+				this.$(this.currMuteId).style.visibility = "visible";
+			}
+		}
+	},
+
+	/**
+	 * 隐藏静音图标
+	 * @param function __hideFn: 提供另外一种隐藏静音图标的方式，可选参数
+	 */
+	hideMute: function(__hideFn){
+		if(this.currMuteShowFlag){
+			this.currMuteShowFlag = false;
+			if(typeof(__hideFn) == "function"){
+				__hideFn();
+				return;
+			}
+			else{
+				this.$(this.currMuteId).style.visibility = "hidden";
+			}
+		}
+	},
+
+	/**
+	 * 获取当前频道的音量值
+	 */
+	getCurrVolume: function(__volumeCal){
+		if(typeof(__volumeCal) == "function"){
+			this.volumeCalculate = __volumeCal(media.sound.value);
+		}
+		this.currVolumeValue = this.volumeCalculate(media.sound.value);
+		return this.currVolumeValue;
+	},
+
+	/**
+	 * 根据具体的计算方式获取音量值
+	 * @param int __value: 音量值
+	 * @return int
+	 */
+	volumeCalculate: function(__value){
+		return __value;
+	},
+	
+	/**
+	 * 音量加
+	 * @param int __offset: 步长
+	 * @param int __maxValue: 最大的音量值, 可选参数
+	 */
+	volumeUp: function(__offset, __maxValue){
+		this.showVolume();
+		if(typeof(__maxValue) == "undefined") __maxValue = 100;
+		if(this.currVolumeValue == __maxValue) return;
+		this.currVolumeValue += __offset;
+		if(this.currVolumeValue > __maxValue) this.currVolumeValue = __maxValue;
+		media.sound.value = this.currVolumeValue;
+	},
+	
+	/**
+	 * 音量减
+	 * @param int __offset: 步长
+	 * @param int __minValue: 最小的音量值, 可选参数
+	 */
+	volumeDown: function(__offset, __minValue){
+		this.showVolume();
+		if(typeof(__minValue) == "undefined") __minValue = 0;
+		if(this.currVolumeValue == __minValue) return;
+		this.currVolumeValue += __offset;
+		if(this.currVolumeValue < __minValue) this.currVolumeValue = __minValue;
+		media.sound.value = this.currVolumeValue;
+	},
+
+	/**
+	 * 显示音量条
+	 */
+	showVolume: function(){
+		if(!this.currVolumeShowFlag){
+			this.currVolumeShowFlag = true;
+			this.$(this.currVolumeId).style.visibility = "visible";
+		}
+		var self = this;
+		clearTimeout(this.volumeTimeout);
+		this.volumeTimeout = setTimeout(function(){self.hideVolume();}, this.volumeTimer);
+	},
+
+	/**
+	 * 隐藏音量条
+	 */
+	hideVolume: function(){
+		if(this.currVolumeShowFlag){
+			this.currVolumeShowFlag = false;
+			this.$(this.currVolumeId).style.visibility = "hidden";
+		}
+		clearTimeout(this.volumeTimeout);
+	},
+	
+	/**
+	 * 初始化频道的声道类型
+	 */
+	initAudioType: function(){
+
+	},
+
+	/**
+	 * 切换声道类型
+	 *
+	 */
+	switchAudioType: function(__type){
+
+	},
+
+	$: function(__id){
+		return iPanel.mainFrame.document.getElementById(__id);
+	}
+};
+
+//vloume
+
+function volume(){
+	this.currMuteStatus = 0;
+	this.currMuteId = "mute_icon";
+	this.currMuteShowFlag = false;
+
+	this.currVolumeValue = 0;
+	this.currVolumeId = "volume";
+	this.currVolumeShowFlag = false;
+	this.volumeTimer = 3000;
+	this.volumeTimeout = -1;
+	this.currWindow = iPanel.mainFrame;
+
+	this.currModeValue = "";
+	this.currModePos = 0;
+	this.audioModesValue = {
+		"chi": ['左声道','右声道','立体声'],
+		"eng": ['Left','Right','Stereo']
+	};
+	this.audioModes = ['audio_left', 'audio_right', 'audio_stereo'];
+	this.currModeId = "audio_mode";
+	this.currModeValueId = "mode_value";
+	this.modeShowFlag = false;
+	this.modeTimer = 4000;
+	this.modeTimeout = -1;
+	this.changeModeImageFlag = false;
+	this.modeImages = [];
+}
+volume.prototype = {
+	/**
+	 * 获取静音的初始状态 0：表示正常  1：表示静音
+	 */
+	getMuteStatus: function(){
+		this.currMuteStatus = media.sound.isMute;
+		return this.currMuteStatus;
+	},
+	
+	/**
+	 * 检测是否处于静音的状态
+	 * @param function __showFn: 提供另外一种显示静音图标的方式，可选参数
+	 */
+	checkMuteStatus: function(__showFn){
+		if(this.currMuteStatus == 1){
+			this.showMute(__showFn);
+		}
+	},
+
+	/**
+	 * 操作静音
+	 * @param int __value: (0<=__value<=1)，可选参数，0：表示转成正常状态，1：表示转成静音状态
+	 * @return int: 1: 表示处于静音状态  0：表示正常
+	 */
+	actionMute: function(__value){
+		//iPanel.debug("cdq actionMute typeof(__value) = " + typeof(__value));
+		if(typeof(__value) == "number" && __value <= 1 && __value >=0) this.currMuteStatus = 1 - __value;
+		//iPanel.debug("cdq actionMute this.currMuteStatus = " + this.currMuteStatus);
+		if(this.currMuteStatus == 0){
+			this.currMuteStatus = 1;
+			media.sound.mute();
+			this.showMute();
+		}
+		else{
+			this.currMuteStatus = 0;
+			//iPanel.debug("cdq media.sound.resume() start ----------------------");
+			media.sound.resume();
+			//iPanel.debug("cdq media.sound.resume() end ----------------------");
+			this.hideMute();
+		}
+		return this.currMuteStatus;
+	},
+
+	/**
+	 * 显示静音图标
+	 * @param function __showFn: 提供另外一种显示静音图标的方式，可选参数
+	 */
+	showMute: function(__showFn){
+		if(!this.currMuteShowFlag){
+			this.currMuteShowFlag = true;
+			if(typeof(__showFn) == "function"){
+				__showFn();
+				return;
+			}
+			else{
+				this.$(this.currMuteId).style.visibility = "visible";
+			}
+		}
+	},
+
+	/**
+	 * 隐藏静音图标
+	 * @param function __hideFn: 提供另外一种隐藏静音图标的方式，可选参数
+	 */
+	hideMute: function(__hideFn){
+		if(this.currMuteShowFlag){
+			this.currMuteShowFlag = false;
+			if(typeof(__hideFn) == "function"){
+				__hideFn();
+				return;
+			}
+			else{
+				this.$(this.currMuteId).style.visibility = "hidden";
+			}
+		}
+	},
+
+	/**
+	 * 设置音量控制是全局还是局部方式
+	 * @param int __value: 0 表示局部  1 表示全局
+	 */
+	initSoundGlobal: function(__value){
+		if(typeof(__value) == "number"){
+			if(__value != user.soundControl){
+				user.soundControl = __value;
+			}
+		}
+	},
+
+	/**
+	 * 获取当前频道的音量值
+	 */
+	getCurrVolume: function(__volumeCal){
+		if(typeof(__volumeCal) == "function"){
+			this.calculate = __volumeCal(media.sound.value);
+		}
+		this.currVolumeValue = this.calculate(media.sound.value);
+		return this.currVolumeValue;
+	},
+
+	/**
+	 * 根据具体的计算方式获取音量值
+	 * @param int __value: 音量值
+	 * @return int
+	 */
+	calculate: function(__value){
+		return __value;
+	},
+	
+	/**
+	 * 根据传入的值来设置音量值
+	 * @param int __value: 音量值
+	 * @return void
+	 */
+	setVolume: function(__value){
+		if(typeof(__value) == "number"){
+			this.currVolumeValue = __value;
+			media.sound.value = __value;
+		}
+	},
+	
+	/**
+	 * 音量加
+	 * @param int __offset: 步长
+	 * @param int __maxValue: 最大的音量值, 可选参数
+	 */
+	up: function(__offset, __maxValue){
+		this.show();
+		if(typeof(__maxValue) == "undefined") __maxValue = 100;
+		if(this.currVolumeValue == __maxValue) return;
+		this.currVolumeValue += __offset;
+		media.sound.value = this.currVolumeValue;
+	},
+	
+	/**
+	 * 音量减
+	 * @param int __offset: 步长
+	 * @param int __minValue: 最小的音量值, 可选参数
+	 */
+	down: function(__offset, __minValue){
+		this.show();
+		if(typeof(__minValue) == "undefined") __minValue = 0;
+		if(this.currVolumeValue == __minValue) return;
+		this.currVolumeValue += __offset;
+		media.sound.value = this.currVolumeValue;
+	},
+
+	/**
+	 * 显示音量条
+	 */
+	show: function(){
+		if(!this.currVolumeShowFlag){
+			this.currVolumeShowFlag = true;
+			this.$(this.currVolumeId).style.visibility = "visible";
+		}
+		var self = this;
+		clearTimeout(this.volumeTimeout);
+		this.volumeTimeout = setTimeout(function(){self.hide();}, this.volumeTimer);
+	},
+
+	/**
+	 * 隐藏音量条
+	 */
+	hide: function(){
+		if(this.currVolumeShowFlag){
+			this.currVolumeShowFlag = false;
+			this.$(this.currVolumeId).style.visibility = "hidden";
+		}
+		clearTimeout(this.volumeTimeout);
+	},
+	
+	/**
+	 * 设置声道模式是全局还是局部方式
+	 * @param int __value: 0 表示局部  1 表示全局
+	 */
+	initAudioModeGlobal: function(__value){
+		if(typeof(__value) == "number"){
+			user.soundModeControl = __value;
+		}
+	},
+
+	/**
+	 * 初始化指定频道的声道类型
+	 * @param object __channel: 频道对象
+	 * @return void
+	 */
+	initAudioMode: function(__channel){
+		if(typeof(__channel) == "object"){
+			this.currModeValue = __channel.audioMode;
+			var curr_pos = this.getAudioModePos(__channel);
+			this.$(this.currModeValueId).innerText = this.audioModesValue[user.UILanguage][curr_pos];
+			if(this.changeModeImageFlag){
+				this.$(this.currModeId).style.backgroundImage = "url("+this.modeImages[curr_pos]+")";
+			}
+		}
+	},
+	
+	/**
+	 * 获取指定频道的声道类型
+	 * @param object __channel: 频道对象
+	 * @return string
+	 */
+	getAudioMode: function(__channel){
+		if(typeof(__channel) == "object"){
+			this.currModeValue = __channel.audioMode;
+		}
+		return this.currModeValue;
+	},
+	
+	/**
+	 * 获取指定频道的声道类型的位置下标
+	 * @param object __channel: 频道对象
+	 * @return int
+	 */
+	getAudioModePos: function(__channel){
+		this.currModePos = 0;
+		if(typeof(__channel) == "object"){
+			switch (__channel.audioMode){
+				case "left":
+					this.currModePos = 0;
+					break;
+				case "right":
+					this.currModePos = 1;
+					break;
+				case "stereo":
+					this.currModePos = 2;
+					break;
+				default:
+					this.currModePos = 0;
+					break;
+			}
+		}
+		return this.currModePos;
+	},
+
+	/**
+	 * 切换声道类型<br>
+     * @param object __channel: 指定频道对象
+	 * @param int __offset: 可选参数 声道类型的切换步长
+	 * @return void
+	 */
+	actionAudioMode: function(__channel, __offset){
+		if(typeof(__channel) == "object"){
+			if(this.modeShowFlag){
+				if(typeof(__offset) == "number"){
+					this.currModePos += __offset;
+					if(this.currModePos < 0) this.currModePos = this.audioModes.length;
+				}
+				else{
+					this.currModePos++;
+				}
+				if(this.currModePos > (this.audioModes.length - 1)) this.currModePos = 0;
+				__channel.audioMode = this.audioModes[this.currModePos];
+				this.currModeValue = this.audioModes[this.currModePos];
+				var curr_pos = this.getAudioModePos(__channel);
+				this.$(this.currModeValueId).innerText = this.audioModesValue[user.UILanguage][curr_pos];
+				if(this.changeModeImageFlag){
+					this.$(this.currModeId).style.backgroundImage = "url("+this.modeImages[curr_pos]+")";
+				}
+			}
+			this.showAudioMode();
+		}
+	},
+	
+	showAudioMode: function(){
+		if(!this.modeShowFlag){
+			this.modeShowFlag = true;
+			this.$(this.currModeId).style.visibility = "visible";
+		}
+		var self = this;
+		clearTimeout(this.modeTimeout);
+		this.modeTimeout = setTimeout(function (){self.hideAudioMode();}, this.modeTimer);
+	},
+	
+	hideAudioMode: function(){
+		clearTimeout(this.modeTimeout);
+		if(this.modeShowFlag){
+			this.modeShowFlag = false;
+			this.$(this.currModeId).style.visibility = "hidden";
+		}
+	},
+
+	$: function(__id){
+		return this.currWindow.document.getElementById(__id);
+	}
+
+};
+
+/**
+ * 中间件网络设置对象
+ * 包括：IP地址，网关，子网掩码，DNS，WEB服务器地址等项的设置
+ */
+function IPConfig(){
+	this.DHCPEnable = -1;
+	this.address = "";
+	this.gateway = "";
+	this.mask = "";
+	this.dns = "";
+	this.homgepage = "";
+	
+	this.my_ethernet = null;
+	
+	this.init();
+}
+IPConfig.prototype = {
+	init: function(){
+		this.my_ethernet = network.ethernets[0];
+		if(typeof(this.my_ethernet)!= "undefined"){
+			var currIP = this.my_ethernet.IPs[0];
+			this.DHCPEnable = parseInt(this.my_ethernet.DHCPEnable);
+			if(typeof(currIP) != "undefined"){
+				this.address = currIP.address;
+				this.mask = currIP.mask;
+				this.gateway = currIP.gateway;
+			}
+			if(typeof(this.my_ethernet.DNSServers[0]) != "undefined") this.dns = this.my_ethernet.DNSServers[0];
+		}
+		var homepage_ip = iPanel.homePage;
+		if(homepage_ip == "") homepage_ip = "192.168.10.10";
+		this.homgepage = homepage_ip;
+	},
+	
+	/**
+	 * 保存网络的相关设置
+	 * @param int __DHCPFlag: 0 表示手动设置,DHCP无效  1 表示DHCP有效
+	 * @param object or string __datas: 如果是DHCP有效那么这个参数是可选的，需要设置homepage的就把需要的字符串传进来
+	 * 如果是DHCP无效，那么就需要把相关的参数通过数组方式传递进行，顺序如：["address", "mask", "gateway", "homepage"]
+	 * @return void
+	 */
+	save: function(__DHCPFlag, __datas){
+		if(typeof(__DHCPFlag) == "number"){
+			this.my_ethernet.DHCPEnable = __DHCPFlag;
+			this.my_ethernet.DHCP.autoGetDNS = __DHCPFlag;
+			if(__DHCPFlag == 0){
+				var currIP = this.my_ethernet.IPs[0];
+				if(typeof(currIP) != "undefined"){
+					currIP.address = __datas[0];
+					currIP.mask    = __datas[1];
+					currIP.gateway = __datas[2];
+				}else{
+					var newIP = new IP();
+					newIP.address = __datas[0];
+					newIP.mask    = __datas[1];
+					newIP.gateway = __datas[2];
+					this.my_ethernet.addIP(newIP);
+				}
+				var temp_dns = new Array();
+				if(typeof(__datas[3]) != "undefined"){
+					temp_dns[0] = __datas[3];
+					this.my_ethernet.DNSServers = temp_dns;
+				}
+				if(typeof(__datas[4]) != "undefined"){
+					iPanel.homePage = __datas[4];
+				}
+			}
+			else{
+				if(typeof(__datas) != "undefined"){
+					iPanel.homePage = __datas;
+				}
+			}
+			this.my_ethernet.submitParameters();//submitParameters就已经包含的network的save操作
+		}
+	}
+};
+
+function input_obj(id, type, start_str, win_obj, max_length, cursor_img, blank_img, img_height){
+	this.id				=	id; //输入框对应td的id，可自行修改
+	this.type			=	(typeof(type)=="undefined"?'normal':type);
+	this.start_str		=	(typeof(start_str)=="undefined"?'':start_str);//文本框中初始的默认值
+	this.win_obj       =   (typeof(win_obj)=="undefined"?iPanel.mainFrame:win_obj);
+	this.cursor_img		=	(typeof(cursor_img)=="undefined"?'focus.gif':cursor_img);//光标的图片名称,默认为'focus.gif',可自行修改
+	this.blank_img		=	(typeof(blank_img)=="undefined"?'global_tm.gif':blank_img);//透明图片名称,默认为'global_tm.gif',可自行修改
+	this.img_height		=	(typeof(img_height)=="undefined"?25:img_height);//图片的高度,默认为20,可自行修改
+	this.max_length		=	(typeof(max_length)=="undefined"?8:max_length);//定义最多输入的字符数,默认为8,可自行修改
+	this.input_timeout	=	-1;//输入时的timeout flag
+	this.num_list		=	[
+								["0"],
+								[" ","1"],
+								["A","B","C","2","a","b","c"],
+								["D","E","F","3","d","e","f"],
+								["G","H","I","4","g","h","i"],
+								["J","K","L","5","j","k","l"],
+								["M","N","O","6","m","n","o"],
+								["P","Q","R","S","7","p","q","r","s"],
+								["T","U","V","8","t","u","v"],
+								["W","X","Y","Z","9","w","x","y","z"]
+							];//输入法之间切换的内容
+	this.input_str		=	this.start_str;//输入的字母
+	this.list_index		=	 -1;//按下的键的位置
+	this.input_index	=	 0;//键盘中对应字母的位置
+	this.cursor_pos		=	 this.input_str.length;//标记光标的位置
+	this.pwd_mark		=	"●";//输入密码时显示出来的星号
+
+
+	/*-------------------------对光标初始化----------------------------------*/
+	this.show_cursor=function(){
+		this.$(this.id).innerHTML = this.get_str();
+	};
+	
+
+	/*-----------------------对捕获到的键值进行处理,并在输入框中显示------------------------*/
+	this.get_input=function(num){
+		if(this.type == "password"||this.type == "num"){//如果输入的为密码或数字
+			if(this.input_str.length<this.max_length){//当输入字符数不小于max_length的时候将不再响应
+				this.input_str=this.input_str.substr(0,this.cursor_pos)+num+this.input_str.substr(this.cursor_pos);
+				this.cursor_pos++; 
+				this.$(this.id).innerHTML = this.get_str();
+			}	
+		}else{//输入的为文字
+			if(this.list_index == num){//重复按下同一个键
+				if(this.input_str.length<(this.max_length+1)){//当输入字符数大于max_length的时候将不再响应
+					this.input_index++;
+					if (this.input_index>=this.num_list[num].length) this.input_index=0;
+					clearTimeout(this.input_timeout);
+					var self = this;
+					this.input_timeout = setTimeout(function(){self.list_index=-1}, 800);//超过800毫秒则不认为按的是同一个键.	
+					var select_list = this.num_list[this.list_index];
+					this.input_str = this.input_str.substr(0,(this.cursor_pos-1)) + select_list[this.input_index]+this.input_str.substr(this.cursor_pos);//按同一个键的时候只改变input_str的最后一个字母
+					this.$(this.id).innerHTML = this.get_str();
+				}
+			}else{//否则记录当前键的位置,并把对应的键的字母写入input_str
+				if(this.input_str.length<this.max_length){//当输入字符数不小于max_length的时候将不再响应
+					this.list_index = num;
+					clearTimeout(this.input_timeout);
+					var self = this;
+					this.input_timeout = setTimeout(function(){self.list_index=-1}, 800);//超过800毫秒则不认为按的是同一个键.	
+					this.input_index = 0;//还原input_index的值
+					var select_list = this.num_list[this.list_index];
+					this.input_str=this.input_str.substr(0,this.cursor_pos)+select_list[this.input_index]+this.input_str.substr(this.cursor_pos);
+					this.cursor_pos++; 
+					this.$(this.id).innerHTML = this.get_str();
+				}
+			}
+		}
+	};
+
+
+	/*-------------------------删除光标前面的那个文字---------------------------*/  
+	this.del_input=function (){
+		if (this.input_str.length>0&&this.cursor_pos>0){
+			this.cursor_pos--;
+			this.input_str = this.input_str.substr(0,this.cursor_pos)+this.input_str.substr(this.cursor_pos+1);
+			this.$(this.id).innerHTML = this.get_str();
+		}
+	};
+	
+	this.clear_input=function(){
+		this.input_str = this.start_str;
+		this.cursor_pos = this.input_str.length;
+		this.input_index = 0;
+	};
+
+
+	/*-------------------------移动光标的位置-----------------------------*/
+	this.move_input=function(num){
+		this.cursor_pos+=num;
+		if(this.cursor_pos<0) this.cursor_pos=0;
+		else if(this.cursor_pos>this.input_str.length) this.cursor_pos = this.input_str.length;
+		this.$(this.id).innerHTML = this.get_str();
+	};
+
+
+	/*----为了让光标在左右移动过程中不出现字体晃动的现象,
+				在每个字符之间都加入了一个和光标大小一样的透明图片,下面函数主要是实现这个功能---*/
+
+	this.get_str=function(){
+		var b_img = '<img src='+this.blank_img+' width=2 height='+this.img_height+'>';
+		var c_img = '<img src='+this.cursor_img+' width=2 height='+this.img_height+'>';
+		var temp_str = ((this.cursor_pos>0)?b_img:c_img);
+		if(this.type == "password"){//如果输入的为密码
+			for (var i=0;i<this.input_str.length;i++){
+				if(i==(this.cursor_pos-1)) temp_str+= this.pwd_mark+c_img;
+				else temp_str+= this.pwd_mark+b_img;
+			}
+		}else if(this.type == "num"){
+			for (var i=0;i<this.input_str.length;i++){
+				if(i==(this.cursor_pos-1)) temp_str+= this.input_str.charAt(i)+c_img;
+				else temp_str+= this.input_str.charAt(i)+b_img;
+			}		
+		}else{
+			if(this.cursor_pos>0){
+				for (var i=0;i<(this.cursor_pos-1);i++){
+					temp_str+=this.input_str.substr(i,1)+b_img;
+				}
+				temp_str+=this.input_str.substr((this.cursor_pos-1),1)+c_img;
+			}
+			for (var j=this.cursor_pos;j<this.input_str.length;j++){
+				temp_str+=this.input_str.substr(j,1)+b_img;
+			}
+		}
+		return temp_str;
+	};
+	
+	/*----------------------定义失去焦点时的操作-------------------------------*/
+	this.lose_focus = function(){
+		var b_img = '<img src='+this.blank_img+' width=2 height='+this.img_height+'>';
+		var temp_str = b_img;
+		if(this.type == "password"){//如果输入的为密码
+			for (var i=0;i<this.input_str.length;i++){
+				temp_str+= this.pwd_mark+b_img;
+			}
+		}else{
+			for (var i=0;i<this.input_str.length;i++){
+				temp_str+= this.input_str.charAt(i)+b_img;
+			}		
+		}
+		this.$(this.id).innerHTML = temp_str;
+	}
+
+	/*----------------简单的定义一个获取id的方法---------------*/
+	this.$= function(id) {
+		if(typeof(this.win_obj) == "object"){
+			return this.win_obj.document.getElementById(id);
+		}
+		else{
+			return document.getElementById(id);
+		}
+	}
+};
+
+function initPage(f) {
+    f.$ = function(id) {
+        return f.document.getElementById(id);
+    }
+    
+    f.user = user;
+    f.lang = (user.UILanguage == 'eng') ? 1:0;
+    f.E = iPanel.eventFrame;
+
+	//定义一个空的eventHandler函数，这样可以防止在应用上面执行了initPage，但是没有定义eventHandler函数，出现eventHandler找不到的情况
+	if(typeof(f.eventHandler) == "undefined"){
+		f.eventHandler = function(){};
+	}
+    f.document.onkeypress = function () {return (f.eventHandler(Event.mapping(f.event), 1));};
+    f.document.onirkeypress = function () {return (f.eventHandler(Event.mapping(f.event), 1));};
+    f.document.onsystemevent = function () {return (f.eventHandler(Event.mapping(f.event), 2));};
+}
+
+function exitToPlay() {
+    var offChannel = user.getOffChannel();
+    if (typeof (offChannel) != "undefined") {
+        iPanel.debug("exitToPlay offChannel = " + offChannel.name);
+        if (offChannel.type != 1 && offChannel.type != 2) {
+            var channelList = user.channels.getVideoList();
+			if(channelList.length > 0){
+				offChannel = channelList[0];
+				channelList[0].open();
+			}
+        } else {
+            offChannel.open();
+        }
+    }
+}
+
+function check_index(){
+	var index_flag = iPanel.getGlobalVar("index_screen")?parseInt(iPanel.getGlobalVar("index_screen")):0;
+	if(index_flag == 1){
+		iPanel.mainFrame.location.href = "index1.htm";
+	}
+	else{
+		iPanel.mainFrame.location.href = "index.htm";
+	}
+}
+function NVOD(){
+	this.curr_program = null;
+	this.categoryList = [];
+	this.PFList = [];
+	this.PFTypeList = [];
+	this.cachePFList = [];
+	this.cacheFlag = false;
+	this.scheduleList = [];
+}
+NVOD.prototype = {
+	/**
+	 * 获取当前NVOD节目所对应的类型
+	 * @__types: [0x04]或者[0x04, 0x05]
+	 * 根据具体的运营商的码流情况，传入具体NVOD所对应的type
+	 */
+	getCategoryList: function(__types){
+		var services = DVB.services;
+		var service_length = services.length;
+		if(service_length > 0){
+			for(var i = 0, k = 0; i < service_length; i++){
+				var curr_service = services[i];
+				for(var j = 0; j < __types.length; j++){
+					if(curr_service.type == __types[j]){
+						this.categoryList[k++] = curr_service;
+						break;
+					}
+				}
+			}
+			return this.categoryList;
+		}
+		else{
+			return [];
+		}
+	},
+
+	/**
+	 * 目前这个方法只用天威的NVOD方式，而且对一些情况的判断不是很全面，但是用于天威的NVOD是没有问题的
+	 * @__types: 是数组的形式，比如：[[5, 5], [2], [3], [4], [5, -5], [7, -6], [7, -7], ["8-15"]]
+	 * 上面数组中负数表示的是!=， 字符串"8-15"表示大于等于8到小于等于15，正数表示==
+	 * 
+	 * @__pos: 这个参数可以不传，传递这个参数就说明要多所获取到的PF数据进行缓存，缓存机制由应用上面进行处理
+	 * 不传递就不进行缓存，不同的__types要传递不同的__pos，传值范围：0<=__pos(研发建议就好不使用应用缓存)
+	 */
+	getPFByContentType: function(__types, __pos){
+		this.cacheFlag = false;
+		if(typeof(__pos) == "number"){
+			this.cacheFlag = true;
+			if(typeof(this.cachePFList[__pos]) != "undefined"){
+				return this.cachePFList[__pos];
+			}
+		}
+		this.PFTypeList = [];
+		this.PFList = EPG.NVODPrograms;
+		var pf_length = this.PFList.length;
+		for(var i = 0, n = 0; i < pf_length; i++){
+			var curr_pro = this.PFList[i];
+			iPanel.debug("i=="+i+"&&curr_pro.contentType[0]=="+curr_pro.contentType[0]+"&&curr_pro.contentType[1]=="+curr_pro.contentType[1])
+			for(var j = 0; j < __types.length; j++){
+				var curr_type = __types[j];
+				if(curr_type.length == 2){
+					if(typeof(curr_type[0]) == "number" && typeof(curr_type[1]) == "number"){
+						if(curr_type[0] >= 0 && curr_type[1] >= 0){
+							if(curr_pro.contentType[0] == curr_type[0] && curr_pro.contentType[1] == curr_type[1]){
+								this.PFTypeList[n++] = curr_pro;
+								break;
+							}
+						}
+						else if(curr_type[0] >= 0 && curr_type[1] < 0){
+								iPanel.debug("curr_type[0]=="+curr_type[0]+"curr_type[1]=="+curr_type[1]);
+								iPanel.debug("curr_pro.contentType[0]=="+curr_pro.contentType[0]+"&&curr_pro.contentType[1]=="+curr_pro.contentType[1])
+							if(curr_pro.contentType[0] == curr_type[0] && curr_pro.contentType[1] != Math.abs(curr_type[1])){
+								this.PFTypeList[n++] = curr_pro;
+								break;
+							}
+						}
+						else if(curr_type[0] < 0 && curr_type[1] >= 0){
+							if(curr_pro.contentType[0] != curr_type[0] && curr_pro.contentType[1] == curr_type[1]){
+								this.PFTypeList[n++] = curr_pro;
+								break;
+							}
+						}
+						else{
+							if(curr_pro.contentType[0] != curr_type[0] && curr_pro.contentType[1] != curr_type[1]){
+								this.PFTypeList[n++] = curr_pro;
+								break;
+							}
+						}
+					}
+				}
+				else{
+					if(typeof(curr_type[0]) == "number"){
+						if(curr_type[0] >= 0){
+							if(curr_pro.contentType[0] == curr_type[0]){
+								this.PFTypeList[n++] = curr_pro;
+								break;
+							}
+						}
+						else{
+							if(curr_pro.contentType[0] != curr_type[0]){
+								this.PFTypeList[n++] = curr_pro;
+								break;
+							}
+						}
+					}
+					else{
+						var t_value = curr_type[0].split("-");
+						if(curr_pro.contentType[0] >= parseInt(t_value[0]) && curr_pro.contentType[0] <= parseInt(t_value[1])){
+							this.PFTypeList[n++] = curr_pro;
+							break;
+						}
+					}
+				}
+			}
+		}
+		if(this.cacheFlag){
+			this.cachePFList[__pos] = this.PFTypeList;
+		}
+		return this.PFTypeList;
+	},
+	
+	/**
+	 * 获取所有NVOD的PF节目
+	 */
+	getAllPFList: function(){
+		this.PFList = EPG.NVODPrograms;
+		if(this.PFList.length > 0){
+			return this.PFList;
+		}
+		else{
+			return [];
+		}
+	},
+
+	prepareSchedules: function(__program){
+		this.curr_program = __program;
+		if(typeof(this.curr_program) == "object"){
+			var flag = this.curr_program.prepareSchedules();
+			return flag;
+		}
+		else{
+			return -1;
+		}
+	},
+
+	getScheduleList: function(__program){
+		this.scheduleList = [];
+		this.curr_program = __program;
+		if(typeof(this.curr_program) == "object"){
+			var tempSchedules = this.curr_program.schedules;
+			iPanel.debug("--------------------222 ="+tempSchedules[0].status);
+			if(tempSchedules[0].status == -1){
+				var tempLength = tempSchedules.length;
+				for(var i = 0, j = 0; i < tempLength; i++){
+					var curr_schedule = tempSchedules[i];
+					if(curr_schedule.status == 0 || curr_schedule.status == 1){
+						this.scheduleList[j++] = curr_schedule;
+					}
+				}
+			}
+			else{
+				iPanel.debug("---------------555");
+				this.scheduleList = this.curr_program.schedules;
+			}
+			return this.scheduleList;
+		}
+		else{
+			return [];
+		}
+	},
+	
+	getScheduleStartPos: function(__program){
+		var startPos = parseInt(__program.presentProgramPostion);
+		return startPos;
+	},
+	
+	exitMode: function(){
+		iPanel.exitMode();
+	}
+
+};
+</script>
+<script src="mail.js"></script>
+</head>
+<body>
+</body>
+</html>

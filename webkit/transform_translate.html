@@ -1,0 +1,71 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+h4{
+    background-color:  #400030;
+    color: white;
+    display: block;
+    margin: 10px;
+    padding: 10px;
+    border: 3px solid white;
+    font-size: 14px;
+    font-weight: bold;
+	width:300px;
+	-webkit-border-radius: 9px;
+}
+.image1{
+  -webkit-transform:translate(20px);
+}
+.image2{
+  -webkit-transform:translate(-20px,-20px);
+}
+.image3{
+  -webkit-transform:translateX(2em);
+}
+.image4{
+  -webkit-transform:translateY(2em);
+}
+</style>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transform:translate(tx,ty)</span></p>
+<p>功能描述 :transform是可以使页面上的元素做变换，比如移动、缩放等，而transform:translate(tx,ty)函数可以使页面元素水平移动tx，垂直方向移动ty</p>
+<p>测试方法 :弄一张没有做过变换的原始图片做参照物，另外设置几组不同的transform:translate(tx,ty)来对比看效果 </p>
+<p>验收标准 : 表格的左列写
+出将作的何种变换，表格的右列的图片执行了相应的变换，图片需要表现出与表格左列说明一致的效果</p>
+
+<hr>
+
+<TABLE border="1">
+<TR>
+	<TD><h4 id="des">原始图片</h4></TD>
+	<TD><img src="transform.jpg"></TD>
+</TR> 
+<TR>
+	<TD><h4 id="des">transform:translate(20px)<br>图片分别向右移动20px</h4></TD>
+	<TD><img src="transform.jpg" class="image1"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform:translate(-20px,-20px)<br>图片分别向上和向左移动20px</h4></TD>
+	<TD><img src="transform.jpg" class="image2"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform:translateX(2em)<br>图片向有移动2em</h4></TD>
+	<TD><img src="transform.jpg" class="image3"></TD>
+</TR>
+<TR>
+	<TD><h4 id="des">transform:translateY(2em)<br>图片向下移动2em</h4></TD>
+	<TD><img src="transform.jpg" class="image4"></TD>
+</TR>
+</TABLE>
+<BR><BR><BR><BR><BR>
+
+<hr>
+
+<a href="transform_matrix.html">prev</a>/<a href="transform_scale.html">next</a><br>
+<a href="index_transform.html">return</a>
+</body>
+</html>

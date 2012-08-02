@@ -1,0 +1,55 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.top1{
+  margin:10px;
+  padding:5px;
+}
+.div1{
+  border:5px solid black;
+  background-color:green;
+  width:150px;
+  height:150px;
+  -webkit-transition-duration:10s;
+}
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var color_flag=0;
+function change_background_color(){
+ if(color_flag==0){
+  document.getElementById("changeColor").style.backgroundColor = "yellow";
+  color_flag=1;
+  }else{
+   document.getElementById("changeColor").style.backgroundColor = "green";
+   color_flag=0;
+   }
+}
+
+
+//-->
+</SCRIPT>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变background-color属性</span></p>
+<p>功能描述 : 用transition样式来使background-color的值在一定时间内渐变，渐变的过程开始于background-color值改变</p>
+<p>测试方法 :采用button的onclick时间来使页面上div的background-color改变，从而点击页面上的按钮就可以看到div背景颜色变化的效果 </p>
+<p>验收标准 : 点击“change backgroundColor”按钮，div背景颜色由绿色渐变为红色，再次点击颜色恢复；且渐变的时间为1秒</p>
+
+<hr>
+<input type="button" value="change backgroundColor" onclick="change_background_color()" class="top1"><br>
+<div class="div1" id="changeColor"></div>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+
+<hr>
+
+<a href="transition_background_position.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

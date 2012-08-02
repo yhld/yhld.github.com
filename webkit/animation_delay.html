@@ -1,0 +1,69 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.image1{
+ border:1px solid;
+ background-color:red;
+ width:100px;
+ height:100px;
+ position:absolute;
+ left:0;
+ -webkit-animation-name:'changeDuration';
+ -webkit-animation-duration:2s;
+  -webkit-animation-delay:-1s;
+}
+.image2{
+ border:1px solid;
+ background-color:blue;
+ width:100px;
+ height:100px;
+ position:absolute;
+ left:150px;
+ -webkit-animation-name:'changeDuration';
+ -webkit-animation-duration:2s;
+  -webkit-animation-delay:0;
+}
+.image3{
+ border:1px solid;
+ background-color:orange;
+ width:100px;
+ height:100px;
+ position:absolute;
+ left:300px;
+ -webkit-animation-name:'changeDuration';
+ -webkit-animation-duration:2s;
+ -webkit-animation-delay:1s;
+}
+@-webkit-keyframes 'changeDuration'{
+   0% { -webkit-transform: skewY(0); }
+   50% { -webkit-transform: skewY(60deg); }
+   100%{-webkit-transform: skewY(30deg); }
+}
+</style>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">animation-delays样式</span></p>
+<p>功能描述 :animation样式可以使元素的样式在一定的时间内发生变化，从而产生动画的效果，而animation-delay用来设置动画开始的时间，可以取负值，表示提前开始执行特效</p>
+<p>测试方法 : 以页面上div的倾斜动画为例，动画效果是div沿y轴倾斜30度，测试分别设置animation-delay为-1s，0，1s的动画效果</p>
+<p>验收标准 :页面上第一个div的倾斜提前了，而二个div的倾斜是立即执行的，第三个div的动画页面加载完毕后过了1秒再执行，动画完成一次的总时间是2s，只执行1次，动画速度默认 </p>
+
+<hr>
+
+<BR><BR>
+<div class="image1" id="image1"></div>
+<div class="image2" id="image2"></div>
+<div class="image3" id="image3"></div>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+<hr>
+
+<a href="animation_play_state.html">prev</a><br>
+<a href="index_animation.html">return</a>
+</body>
+</html>
+

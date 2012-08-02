@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.top1{
+  position: absolute;
+  left:34%;
+  top:190px;
+  margin:10px;
+  padding:5px;
+}
+.left1{
+  position:absolute;
+  top:240px;
+  margin:10px;
+  padding:5px;
+}
+.right1{
+  position: absolute;
+  left:70%;
+  top:240px;
+  margin:10px;
+  padding:5px;
+}
+.div1{
+  border:5px solid black;
+  position:absolute;
+  left:37%;
+  top:240px;
+  width:150px;
+  height:150px;
+  -webkit-transition-duration:1s;
+}
+.bottom1{
+  position: absolute;
+  left:32%;
+  top:390px;
+  margin:10px;
+  padding:5px;
+}
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function change_top_color(){
+  document.getElementById("changeColor").style.borderTopColor = "red";
+}
+
+function change_left_color(){
+  document.getElementById("changeColor").style.borderLeftColor = "green";
+}
+
+function change_right_color(){
+  document.getElementById("changeColor").style.borderRightColor = "yellow";
+}
+
+function change_bottom_color(){
+  document.getElementById("changeColor").style.borderBottomColor = "blue";
+}
+//-->
+</SCRIPT>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变border-color属性</span></p>
+<p>功能描述 : 用transition样式来使border-color的值在一定时间内渐变，渐变的过程开始于border-color值改变</p>
+<p>测试方法 :采用button的onclick时间来使页面上div各个边框的border-color改变，从而点击页面上的按钮就可以看到边框颜色变化的效果 </p>
+<p>验收标准 : 点击“border-top-color”按钮，div上边框的颜色渐变为红色；点击“border-left-color”按钮，div左边框的颜色变为绿色；点击“border-right-color”按钮，div右边框的颜色变为黄色；点击“border-bottom-color”按钮，div底部的边框颜色变为蓝色；且这些颜色的变化时间均为1秒</p>
+
+<hr>
+
+
+<input type="button" value="border-top-color" onclick="change_top_color()" class="top1"><br>
+<input type="button" value="border-left-color" onclick="change_left_color()" class="left1">
+<input type="button" value="border-right-color" onclick="change_right_color()" class="right1">
+<div class="div1" id="changeColor"></div>
+<input type="button" value="border-bottom-color" onclick="change_bottom_color()" class="bottom1">
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR>
+
+<hr>
+
+<a href="transition_background_position.html">prev</a>/<a href="transition_border_width.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

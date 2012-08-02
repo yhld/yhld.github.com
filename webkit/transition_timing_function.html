@@ -1,0 +1,124 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:12px;
+ }
+.timingFunction1{
+  margin:10px;
+  padding:5px;
+}
+.timingFunction2{
+  position: absolute;
+  left:20%;
+  margin:10px;
+  padding:5px;
+}
+.timingFunction3{
+  position: absolute;
+  left:40%;
+  margin:10px;
+  padding:5px;
+}
+.image1{
+ opacity:1;
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:0;
+ top:230px;
+ -webkit-transition-duration:2s;
+ -webkit-transition-timing-function:linear;
+}
+.image2{
+ opacity:1;
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:210px;
+ top:230px;
+-webkit-transition-duration:2s;
+-webkit-transition-timing-function:ease-in;
+}
+.image3{
+ opacity:1;
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:420px;
+ top:230px;
+ -webkit-transition-duration:2s;
+ -webkit-transition-timing-function:ease-out;
+}
+
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+var left_flag=0;
+var width_flag=0;
+
+function transition_linear(){
+  if(text_flag==0){
+    document.getElementById("image1").style.opacity = "0";
+	text_flag=1;
+  }else{
+    document.getElementById("image1").style.opacity = "1";
+	text_flag=0;
+	}
+}
+
+function transition_ease_in(){
+if(left_flag==0){
+    document.getElementById("image2").style.opacity = "0";
+	left_flag=1;
+  }else{
+    document.getElementById("image2").style.opacity = "1";
+	left_flag=0;
+	}
+
+}
+function transition_ease_out(){
+if(width_flag==0){
+    document.getElementById("image3").style.opacity = "0";
+	width_flag=1;
+  }else{
+    document.getElementById("image3").style.opacity = "1";
+	width_flag=0;
+	}
+
+}
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition-timing-function</span></p>
+<p>功能描述 : transition-timing-function样式用来设置transition渐变transition-property样式值时渐变过程的速度函数</p>
+<p>测试方法 :以改变opacity样式值作为例子，分别测试设置transition-timing-function为linear，ease-in，ease-out的渐变过程</p>
+<p>验收标准 :点击“linear”按钮，页面上第一张图片从不透明变为透明，渐变过程是匀速的；点击“ease-in”按钮，页面上第二张图片的也从不透明变为透明，但是渐变过程是先慢后快；点击“ease-out”按钮，页面上第三张图片也从不透明变透明，但是渐变过程是先快后慢 ；渐变时间均为2s，都是立即开始执行渐变</p>
+
+<hr>
+<input type="button" value="linear" onclick="transition_linear()" class="timingFunction1">
+<input type="button" value="ease-in" onclick="transition_ease_in()" class="timingFunction2">
+<input type="button" value="ease-out" onclick="transition_ease_out()" class="timingFunction3">
+<img src="2-.jpg" class="image1" id="image1">
+<img src="5.gif" class="image2" id="image2">
+<img src="1.jpg" class="image3" id="image3">
+
+
+
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+
+<hr>
+
+<a href="transition_duration.html">prev</a>/<a href="transition_delay.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

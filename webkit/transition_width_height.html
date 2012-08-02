@@ -1,0 +1,110 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:12px;
+ }
+.changeWidth{
+  margin:10px;
+  padding:5px;
+}
+.changeHeight{
+  position: absolute;
+  left:20%;
+  margin:10px;
+  padding:5px;
+}
+.changeWidthHeight{
+  position: absolute;
+  left:40%;
+  margin:10px;
+  padding:5px;
+}
+h3{
+  width:400px;
+  height:20px;
+  -webkit-transition-duration:1s;
+}
+.image1{
+  width:100px;
+  height:80px;
+  -webkit-transition-duration:1s;
+}
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+var left_flag=0;
+var width_flag=0;
+
+function change_width(){
+  if(text_flag==0){
+    document.getElementById("head1").style.width = "600px";
+	document.getElementById("image").style.width = "400px";	
+	text_flag=1;
+  }else{
+    document.getElementById("head1").style.width = "400px";
+	document.getElementById("image").style.width = "100px";
+	text_flag=0;
+	}
+}
+
+function change_height(){
+if(left_flag==0){
+    document.getElementById("head1").style.height = "40px";
+	document.getElementById("image").style.height = "300px";
+	left_flag=1;
+  }else{
+    document.getElementById("head1").style.height = "20px";
+    document.getElementById("image").style.height = "80px";
+
+	left_flag=0;
+	}
+}
+
+function change_width_height(){
+if(width_flag==0){
+    document.getElementById("head1").style.width = "600px";
+	document.getElementById("image").style.width = "400px";
+	document.getElementById("head1").style.height = "40px";
+	document.getElementById("image").style.height = "300px";
+   width_flag=1;
+  }else{
+    document.getElementById("head1").style.width = "400px";
+	document.getElementById("image").style.width = "100px";
+	document.getElementById("head1").style.height = "20px";
+    document.getElementById("image").style.height = "80px";
+	width_flag=0;
+	}
+}
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变width、height属性</span></p>
+<p>功能描述 : 用transition样式来使width、height的值在一定时间内渐变，渐变的过程开始于width、height值的改变</p>
+<p>测试方法 :采用button的onclick事件来使页面上文本和图片的width、height值改变，从而点击页面上的按钮就可以看到文本和图片的宽高度渐变效果 </p>
+<p>验收标准 : 点击“改变宽度”按钮，页面上各种不同的文字宽度变大同时图片变宽，再点击一次恢复；点击“改变高度”按钮，页面上不同的文字高度变大同时图片边宽，再次点击恢复；点击“同时改变宽高度”按钮，页面上文字和图片的宽度高度都变大，再次点击此按钮恢复；且这些渐变时间均为1秒</p>
+
+<hr>
+<input type="button" value="改变宽度" onclick="change_width()" class="changeWidth">
+<input type="button" value="改变高度" onclick="change_height()" class="changeHeight">
+<input type="button" value="同时改变宽高度" onclick="change_width_height()" class="changeWidthHeight">
+
+<h3 id="head1">this is head h3.this is head h3.this is head h3.this is head h3.this is head h3.</h1><br>
+<img src="5.gif" class="image1" id="image">
+
+
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+
+<hr>
+
+<a href="transition_font.html">prev</a>/<a href="transition_spacing.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

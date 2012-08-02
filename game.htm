@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>平面魔方</title>
+<style type="text/css">
+
+</style>
+<link rel="stylesheet" type="text/css" href="css/game.css">
+<script src="js/box.js"></script>
+<script src="js/border.js"></script>
+<script src="js/pop.js"></script>
+<script src="js/keyEvent.js"></script>
+<script src="js/control.js"></script>
+<script src="js/recordpath.js"></script>
+<script type="text/javascript">
+function init(_size){
+	clearAll(_size);
+	initBox(_size);
+	initBorder(_size);	
+	
+}
+function clearAll(_size){
+	$("gameRegion").innerHTML = "";
+	resetRecordPath();
+	$("loadingDiv").className="loadingDiv loadingDivHidden";
+}
+
+
+
+</script>
+</head>
+<body onload="init(7);">
+
+	<div id="gameRegion" class="gameRegion"></div>
+	
+	<div style="position:absolute;left:600px;top:30px;">
+		<button onclick="randomGenePath(10);">随机打乱</button>
+		<button onclick="backOneRandomPath();">返回上一步</button>
+		<button onclick="backAllRandomPath(400);">慢镜头回去</button>
+		<button onclick="showDialogAfterVictory();">左转</button>
+		<div id="info">chrome可以用，ipanel浏览器把control.js的onkeypress取消<br>
+		
+		</div>
+	</div>
+	<div id="loadingDiv" class="loadingDiv"></div>
+	<div id="popDiv"></div>
+	<div id="victoryDiv"></div>
+	<div id="popDialog">
+		<div style="background-image:url('../img/pop/pop_btn_focus.png');width:359px;height:60px;">11111111</div>
+	</div>
+</body>
+</html>

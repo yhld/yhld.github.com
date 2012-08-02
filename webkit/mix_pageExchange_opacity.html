@@ -1,0 +1,44 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+font-size:12px;
+opacity:1;
+-webkit-transition-duration:1s;
+}
+.a1{
+  margin:10px;
+  padding:5px;
+}
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function change_opacity(){
+    document.getElementById("body1").style.opacity = "0";	
+}
+
+//-->
+</SCRIPT>
+</head>
+<body onunload="change_opacity()" id="body1">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">用transition实现页面切换之间的特效</span></p>
+<p>功能描述 :需实现页面之间切换时变换透明度，即前一张被切换的页面的不透明度要逐渐减少为0，后一张切换进来的页面的不透明度要从0逐渐变化为1，最后显示出来。这个可以用transition渐变body的opacity属性来实现</p>
+<p>测试方法 :页面上有一个链接，链接到下一个页面，当离开当前页面时采用unonload事件把body的opacity改为0，用transition渐变；同时打开下一张页面时，在下一张页面上用onload事件把body的opacity从0改为1，再用transition渐变得到效果</p>
+<p>验收标准 :点击“进入改变透明度测试页面” 链接，当前页面的透明度会逐渐变为0，同时下一张页面不透明度逐渐增加，逐步的显现出来；所有渐变时间为1秒，渐变为匀速</p>
+
+<hr>
+<a href="pageExchange_opacity.html" class="a1">进入改变透明度测试页面</a>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<hr>
+
+<a href="mix_cutout.html">prev</a>/<a href="mix_pageExchange_zoom.html">next</a><br>
+<a href="index_mix.html">return</a>
+</body>
+</html>

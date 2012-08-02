@@ -1,0 +1,59 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.top1{
+  margin:10px;
+  padding:5px;
+}
+
+.div1{
+  border:1px solid black;
+  width:150px;
+  height:150px;
+  -webkit-transform:scale(1);
+  -webkit-transform-origin:0 0;
+  -webkit-transition-duration:1s;
+}
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var translate_flag=0;
+function change_scale(){
+ if(translate_flag==0){
+  document.getElementById("changeScale").style.webkitTransform = "scale(2)";
+  translate_flag=1;
+  }else{
+   document.getElementById("changeScale").style.webkitTransform = "scale(1)";
+   translate_flag=0;
+  }
+}
+
+//-->
+</SCRIPT>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变transform变换</span></p>
+<p>功能描述 : 用transition样式可以使CSS样式的值在一定的时间内渐变，对transform:scale()的变换也可以进行渐变</p>
+<p>测试方法 :采用button的onclick事件来使页面上图片放大，且放大是在一定时间内完成的，从而点击页面上的按钮就可以看到图片放大的效果 </p>
+<p>验收标准 : 点击“scale函数动作渐变”按钮，图片会以图片左上角顶点为原点放大一倍，再次点击大小恢复；且渐变时间为1秒，渐变速度为匀速</p>
+
+<hr>
+
+
+<input type="button" value="scale函数动作渐变" onClick="change_scale()" class="top1"><br>
+<div style="position:	absolute;height:300px;width:200px;left:200px;top:200px">
+<img src="5.gif" class="div1" id="changeScale" >
+</div>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+<hr>
+
+<a href="transform_translate_transition.html">prev</a>/<a href="transform_rotate_transition.html">next</a><br>
+<a href="index_transform_transition.html">return</a>
+</body>
+</html>

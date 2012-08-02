@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:12px;
+ letter-spacing:1px;
+ word-spacing:10px;
+ -webkit-transition-duration:1s;
+ }
+.letterSpacing{
+  margin:10px;
+  padding:5px;
+}
+.wordSpacing{
+  position: absolute;
+  left:20%;
+  margin:10px;
+  padding:5px;
+}
+
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+var left_flag=0;
+
+function change_letter_spacing(){
+  if(text_flag==0){
+    document.getElementById("changeColor").style.letterSpacing = "8px";
+	text_flag=1;
+  }else{
+    document.getElementById("changeColor").style.letterSpacing = "1px";
+	text_flag=0;
+	}
+
+}
+
+function change_word_spacing(){
+if(left_flag==0){
+  document.getElementById("changeColor").style.wordSpacing = "30px";
+  left_flag=1;
+  }else{
+    document.getElementById("changeColor").style.wordSpacing = "10px";
+	left_flag=0;
+	}
+}
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变spacing属性</span></p>
+<p>功能描述 : 用transition样式来使letter-spacing、word-spacing的值在一定时间内渐变，渐变的过程开始于letter-spacing、word-spacing值的改变</p>
+<p>测试方法 :采用button的onclick事件来使页面上文本的letter-spacing、word-spacing值改变，从而点击页面上的按钮就可以看到文本字符和单词间距的渐变效果 </p>
+<p>验收标准 : 点击“改变字符间距”按钮，页面上的所有的字符间距从1px变为8px，再点击一次字符间距恢复；点击“改变字间距”按钮，页面上所有的单词的间距从10px变为30px，再点击恢复；且这些渐变时间均为1秒</p>
+
+<hr>
+<input type="button" value="改变字符间距" onclick="change_letter_spacing()" class="letterSpacing">
+<input type="button" value="改变字间距" onclick="change_word_spacing()" class="wordSpacing">
+<h1>this is head h1</h1>
+<p>this is a pragraph</p>
+<TABLE border="1px">
+<TR>
+	<TD>word in table</TD>
+	<TD>word in table</TD>
+</TR>
+<TR>
+	<TD>word in table</TD>
+	<TD>word in table</TD>
+</TR>
+</TABLE>
+
+
+
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR>
+
+<hr>
+
+<a href="transition_width_height.html">prev</a>/<a href="transition_margin.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

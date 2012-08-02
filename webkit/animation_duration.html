@@ -1,0 +1,68 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.image1{
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:0;
+ top:190px;
+ -webkit-animation-name:'changeDuration';
+ -webkit-animation-duration:0;
+}
+.image2{
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:210px;
+ top:190px;
+ -webkit-animation-name:'changeDuration';
+ -webkit-animation-duration:3s;
+}
+.image3{
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:420px;
+ top:190px;
+ -webkit-animation-name:'changeDuration';
+ -webkit-animation-duration:5s;
+}
+@-webkit-keyframes 'changeDuration'{
+   from{
+     top:190px;
+   }
+   50%{
+     top:400px;
+   }
+   to{
+     top:190px;
+   }
+}
+</style>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">animation-duration样式</span></p>
+<p>功能描述 :animation样式可以使元素的样式在一定的时间内发生变化，从而产生动画的效果，而animation-duration就是设置animation动画的总时间值 </p>
+<p>测试方法 : 以页面元素的位置移动（从上到下再回到原位）为例，测试设置animation-duration分别为0，3s，5s的动画效果</p>
+<p>验收标准 :页面上的第一张图片设置的animation-duration为0，即图片直接到达最后的位置-》原位，相当于没有位置移动；第二张图片在3s内完成向下移动再向上回到原位的动画；第三张图片在5s内完成与第二张图片相同的动画操作；动画的运动速度均是默认，且都是立即执行，只执行一次 </p>
+
+<hr>
+
+<BR><BR>
+<img src="2-.jpg" class="image1" id="image1">
+<img src="5.gif" class="image2" id="image2">
+<img src="1.jpg" class="image3" id="image3">
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+<hr>
+
+<a href="animation_timing_function.html">next</a><br>
+<a href="index_animation.html">return</a>
+</body>
+</html>

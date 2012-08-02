@@ -1,0 +1,108 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:12px;
+ }
+.marginLeft{
+  margin:10px;
+  padding:5px;
+}
+.marginRight{
+  position: absolute;
+  left:20%;
+  margin:10px;
+  padding:5px;
+}
+
+h3{
+  margin-left:10px;
+  margin-right:10px;
+  -webkit-transition-duration:1s;
+}
+.word{
+  margin-left:10px;
+  margin-right:10px;
+  -webkit-transition-duration:1s;
+}
+.image1{
+  width:200px;
+  height:150px;
+  margin-left:20px;
+  -webkit-transition-duration:1s;
+}
+.image2{
+  width:200px;
+  height:150px;
+  margin-right:20px;
+  -webkit-transition-duration:1s;
+}
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+var left_flag=0;
+var width_flag=0;
+
+function change_margin_left(){
+  if(text_flag==0){
+    document.getElementById("head1").style.marginLeft = "50px";
+    document.getElementById("p1").style.marginLeft = "50px";
+	document.getElementById("image1").style.marginLeft = "50px";	
+	text_flag=1;
+  }else{
+    document.getElementById("head1").style.marginLeft = "10px";
+	document.getElementById("p1").style.marginLeft = "10px";
+	document.getElementById("image1").style.marginLeft = "20px";
+	text_flag=0;
+	}
+}
+
+function change_margin_right(){
+if(left_flag==0){
+    document.getElementById("head1").style.marginRight = "50px";
+    document.getElementById("p1").style.marginRight = "50px";
+	document.getElementById("image2").style.marginRight = "50px";	
+	left_flag=1;
+  }else{
+    document.getElementById("head1").style.marginRight = "10px";
+    document.getElementById("p1").style.marginRight = "10px";
+	document.getElementById("image2").style.marginRight = "20px";
+	left_flag=0;
+	}
+
+}
+
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变margin属性</span></p>
+<p>功能描述 : 用transition样式来使margin-left、margin-right的值在一定时间内渐变，渐变的过程开始于margin-left、margin-right值的改变</p>
+<p>测试方法 :采用button的onclick事件来使页面上文本和图片的margin-left、margin-right值改变，从而点击页面上的按钮就可以看到文本和图片左右外边距的渐变效果 </p>
+<p>验收标准 : 点击“改变左边距”按钮，页面上各种不同的文字和左边的图片距离页面左边缘的距离加大，再点击一次恢复；点击“改变右边距”按钮，页面上不同的文字和右边的图片距离页面右边缘的距离加大，再次点击恢复；且这些渐变时间均为1秒</p>
+
+<hr>
+<input type="button" value="改变左边距" onclick="change_margin_left()" class="marginLeft">
+<input type="button" value="改变右边距" onclick="change_margin_right()" class="marginRight">
+
+<h3 id="head1">this is head h3.this is head h3.this is head h3.this is head h3.this is head h3.this is head h3.this is head h3.this is head h3.</h1><br>
+<p id="p1" class="word">this a paragraph.this a paragraph.this a paragraph.this a paragraph.this a paragraph.this a paragraph.this a paragraph.this a paragraph.this a paragraph.</p>
+<img src="5.gif" class="image1" id="image1" align="left">
+<img src="5.gif" class="image2" id="image2" align="right">
+
+
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+
+<hr>
+
+<a href="transition_spacing.html">prev</a>/<a href="transition_opacity.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

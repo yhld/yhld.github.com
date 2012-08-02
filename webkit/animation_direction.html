@@ -1,0 +1,58 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body,table{font-size:12px;}
+.image1{
+ border:1px solid;
+ width:200px;
+ height:100px;
+ position:absolute;
+ top:190px;
+ -webkit-animation-name:'changeDuration';
+ -webkit-animation-duration:2s;
+  -webkit-animation-direction:normal;
+}
+.image2{
+ border:1px solid;
+ width:200px;
+ height:100px;
+ position:absolute;
+ top:300px;
+ -webkit-animation-name:'changeDuration';
+ -webkit-animation-duration:2s;
+  -webkit-animation-direction:alternate;
+}
+
+@-webkit-keyframes 'changeDuration'{
+   from{
+     left:50px;
+   }
+   to{
+     left:200px;
+   }
+}
+</style>
+</head>
+<body>
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">animation-direction样式</span></p>
+<p>功能描述 :animation样式可以使元素的样式在一定的时间内发生变化，从而产生动画的效果，而animation-direction设置animation动画是从from关键帧执行动画到最后的to关键帧，还是从to关键帧执行动画到from关键帧，取值为normal或者不取值是前面一种情况，取值为alternate为后面一种情况 </p>
+<p>测试方法 : 以页面图片位置改为例，图片的left属性在from时为50px，to时为200px，测试分别设置animation-direction为normal和alternate的两种效果</p>
+<p>验收标准 :页面上第一个图片是从左向右移动，而二张图片是从右向做移动，动画完成一次的总时间是2s，只执行1次，动画速度默认 </p>
+
+<hr>
+
+<BR><BR>
+<img src="5.gif" class="image1" id="image1">
+<img src="5.gif" class="image2" id="image2">
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+<hr>
+
+<a href="animation_interaction_count.html">prev</a>/<a href="animation_play_state.html">next</a><br>
+<a href="index_animation.html">return</a>
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<TITLE> New Document </TITLE>
+<META NAME="Generator" CONTENT="EditPlus">
+<META NAME="Author" CONTENT="">
+<META NAME="Keywords" CONTENT="">
+<META NAME="Description" CONTENT="">
+<script type = "text/JavaScript" src = "mainMenu.js"></script>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var canvas = new graphics.canvas(0,0,640,526);
+var text_arr = new Array;
+var main_pos = 2;		//主菜单焦点位置
+var main_menu_num=7;	//主菜单菜单项数
+var main_menu_disp_num=5;	//主菜单显示的项数
+var main_menu_focus=0; 	//主菜单第一张图片所对应的 pic_arr object的下标
+var con = new Array;
+var con_surface;
+var opacity_up;
+var opacity_down;
+var bottom_in_effect = new Array;
+var top_in_effect = new Array;
+var focus;
+var focus_area = 0;	//--------定义一个区域块，一级为0，二级为1
+var num_flag = 1;
+var sub_main_pos;
+var text_pos=main_pos;
+var ad_pos=main_pos;
+var main_length= mainMenu.length;
+var sub_pos = 0;
+var pic_arr = new Array;
+var left_effect = new Array;
+var left_hidden_area;
+var right_hidden_area;
+var right_effect = new Array;
+var AD_arr = new Array;
+var AD_surface_arr = new Array;
+var right_in_effect = new Array;
+var right_out_effect = new Array;
+var left_in_effect = new Array;
+var left_out_effect = new Array;
+
+
+document.onkeypress = grabEvent;
+document.onirkeypress = grabEvent;
+//document.onkeydown = grabEvent;
+function grabEvent(e){
+	//alert(e.which);
+	switch(e.which){
+		case 4://right
+			//main_pos -= 1;
+			if(focus_area == 0){
+				num_flag = 1;
+				action_effect(-1);
+				sub_pos = 0;
+			}
+			break;
+		case 3:	//left
+			if(focus_area == 0){
+				num_flag = 0;
+				action_effect(1);
+				sub_pos = 0;
+			}
+			break;
+		case 1:	//up
+			changeFocus(-1);
+			break;
+		case 2:	//down
+		  	changeFocus(1);
+			break;
+		case 13:	//select
+			window.location="next.html";
+			//window.location="http://192.168.10.252/cbqjlj/index.html";
+			break;
+	}
+}
+
+function init()
+{
+	 showImage();
+	 //showTextElement();
+	 showTextElement2();
+	 //showADElement();
+	 showADElement2();
+	 showEffect();
+	 setSubEffect();
+	 setADEffect();
+	 canvas.refresh();	
+}
+
+function showImage()
+{
+     canvas.bgImage = "index_bg.gif";
+	 for(var i = 0; i<main_menu_disp_num; i++){
+		pic_arr[i] = new graphics.imageElement(54+i*110,32,75,70,mainMenu[i].pic[0]);
+		pic_arr[i].type = "tile";
+		canvas.add(pic_arr[i]);
+	}
+	for(var i = main_menu_disp_num; i<main_menu_num; i++){
+		pic_arr[i] = new graphics.imageElement(54,32,75,70,mainMenu[i].pic[0]);
+		pic_arr[i].type = "tile";
+		pic_arr[i].visible = false;
+		canvas.add(pic_arr[i]);
+	}
+}
+
+
+function showTextElement(){
+	for(var i = 0; i < mainMenu.length; i++){
+		text_arr[i] = [];
+		con[i] = new graphics.container(242,143,130,210);
+	    //con[i].bgColor = "transparent";
+        for(var j = 0; j<mainMenu[i].subMenu.length; j++){
+			text_arr[i][j] = new graphics.textElement(242,145+j*30,130,30,mainMenu[i].subMenu[j].name);
+			//text_arr[i][j].bgColor ="#aa4c00";
+			//text_arr[i][j].color ="blue";
+			con[i].add(text_arr[i][j]);
+	    }
+		if(i != main_pos){
+			con[i].visible = false;
+	   	}
+		canvas.add(con[i],100+i);
+	}
+	focus = new graphics.imageElement(242,167,160,36,"focus.gif");
+	canvas.add(focus,80);
+}
+
+function showTextElement2(){
+	for(var i = 0; i < mainMenu.length; i++){
+		text_arr[i] = [];
+		con[i] = new graphics.container(242,143,130,210);
+	    //con[i].bgColor = "transparent";
+        for(var j = 0; j<mainMenu[i].subMenu.length; j++){
+			text_arr[i][j] = new graphics.textElement(242,145+j*30,130,30,mainMenu[i].subMenu[j].name);
+			//text_arr[i][j].bgColor ="#aa4c00";
+			//text_arr[i][j].color ="blue";
+			con[i].add(text_arr[i][j]);
+	    }
+		if(i != main_pos){
+			con[i].visible = false;
+	   	}
+		//canvas.add(con[i],100+i);
+	}
+	con_surface = new graphics.container(242,143,130,210);
+	canvas.copy(con_surface, con[main_pos]);
+	con_surface.visible = true;
+	canvas.add(con_surface,100);
+	focus = new graphics.imageElement(242,167,160,36,"focus.gif");
+	canvas.add(focus,80);
+}
+
+function showADElement(){
+	for(var i = 0; i < mainMenu.length; i++){
+	    // iPanel.debug("mainMenu["+i+"].subMenu.length="+mainMenu[i].subMenu.length);
+		AD_arr[i] = [];
+		AD_arr[i][0] = new graphics.imageElement(26,179,99,204,mainMenu[i].AD[0]);
+		AD_arr[i][1] = new graphics.imageElement(126,179,99,204,mainMenu[i].AD[1]);
+		AD_arr[i][2] = new graphics.imageElement(417,179,99,204,mainMenu[i].AD[2]);
+		AD_arr[i][3] = new graphics.imageElement(517,179,99,204,mainMenu[i].AD[3]);
+		if(i != main_pos){
+			AD_arr[i][0].visible = false;
+			AD_arr[i][1].visible = false;
+			AD_arr[i][2].visible = false;
+			AD_arr[i][3].visible = false;
+	   	}
+		canvas.add(AD_arr[i][0]);
+		canvas.add(AD_arr[i][1]);
+		canvas.add(AD_arr[i][2]);
+		canvas.add(AD_arr[i][3]);
+	}
+}
+
+function showADElement2(){
+	for(var i = 0; i < mainMenu.length; i++){
+	    // iPanel.debug("mainMenu["+i+"].subMenu.length="+mainMenu[i].subMenu.length);
+		AD_arr[i] = [];
+		AD_arr[i][0] = new graphics.imageElement(26,179,99,204,mainMenu[i].AD[0]);
+		AD_arr[i][1] = new graphics.imageElement(126,179,99,204,mainMenu[i].AD[1]);
+		AD_arr[i][2] = new graphics.imageElement(417,179,99,204,mainMenu[i].AD[2]);
+		AD_arr[i][3] = new graphics.imageElement(517,179,99,204,mainMenu[i].AD[3]);
+		if(i != main_pos){
+			AD_arr[i][0].visible = false;
+			AD_arr[i][1].visible = false;
+			AD_arr[i][2].visible = false;
+			AD_arr[i][3].visible = false;
+	   	}
+	}
+	
+	for(i=0; i<2; i++) {
+		AD_surface_arr[i] = [];
+		AD_surface_arr[i][0] = new graphics.imageElement(26,179,99,204,"");
+		AD_surface_arr[i][1] = new graphics.imageElement(126,179,99,204,"");
+		AD_surface_arr[i][2] = new graphics.imageElement(417,179,99,204,"");
+		AD_surface_arr[i][3] = new graphics.imageElement(517,179,99,204,"");
+	}
+	for(i=0; i<4; i++) {
+		canvas.copy(AD_surface_arr[0][i], AD_arr[main_pos][i]);
+		AD_surface_arr[0][i].visible = true;
+		canvas.add(AD_surface_arr[0][i]);
+	}
+	for(i=0; i<4; i++) {
+		canvas.copy(AD_surface_arr[1][i], AD_arr[main_pos][i]);
+		AD_surface_arr[1][i].visible = false;
+		canvas.add(AD_surface_arr[1][i]);
+	}
+}
+
+function showEffect(){
+	
+	left_effect[0] = new graphics.effect("cutout",54,32,"left",20,10);
+	left_effect[1] = new graphics.effect("move",164,32,54,32,20,10);
+	left_effect[2] = new graphics.effect("zoom",262,28,110,86,164,32,75,70,20,10);
+	left_effect[3] = new graphics.effect("zoom",384,32,75,70,262,28,110,86,20,10);
+	left_effect[4] = new graphics.effect("move",494,32,384,32,20,10);
+    left_effect[5] = new graphics.effect("cutin",494,32,"right",20,10);
+
+	right_effect[0] = new graphics.effect("cutin",54,32,"left",20,10);
+    right_effect[1] = new graphics.effect("move",54,32,164,32,20,10);
+	right_effect[2] = new graphics.effect("zoom",164,32,75,70,262,28,110,86,20,10);
+	right_effect[3] = new graphics.effect("zoom",262,28,110,86,384,32,75,70,20,10);
+	right_effect[4] = new graphics.effect("move",384,32,494,32,20,10);
+	right_effect[5] = new graphics.effect("cutout",494,32,"right",20,10);
+	
+	init_effect = new graphics.effect("zoom",pic_arr[main_pos].x,pic_arr[main_pos].y,75,70,262,28,110,86,20,10);
+    //pic_arr[main_pos].bindEffect(init_effect);
+    pic_arr[main_pos].execEffect(init_effect);
+
+}
+
+function setSubEffect(){
+	opacity_up = new graphics.effect("changeOpacity",242,143,30,100,20,4);
+	opacity_down = new graphics.effect("changeOpacity",242,143,100,30,20,4);
+
+	for(var i = 0; i<6; i++){
+		bottom_in_effect[i] = new graphics.effect("move",242,167+i*30,242,167+(i+1)*30,10,5);
+		//top_in_effect[i] = new Effect("move",510,195+(i+1)*51,510,195+i*51,10,10);
+	}
+	for(var i = 6; i>0; i--){
+		top_in_effect[i] = new graphics.effect("move",242,167+i*30,242,167+(i-1)*30,10,5);
+	}
+	focus_opacity_up = new graphics.effect("blendzoom",242,167,160,36,30,242,167,160,36,100,10,4);
+}
+
+function setADEffect(){
+
+	right_in_effect[0] = new graphics.effect("cutin",26,179,"left",20,10);
+	right_in_effect[1] = new graphics.effect("cutin",126,179,"left",20,10);
+	right_in_effect[2] = new graphics.effect("cutin",417,179,"left",20,10);
+	right_in_effect[3] = new graphics.effect("cutin",517,179,"left",20,10);
+	
+	right_out_effect[0] = new graphics.effect("cutout",26,179,"right",20,10);
+	right_out_effect[1] = new graphics.effect("cutout",126,179,"right",20,10);
+	right_out_effect[2] = new graphics.effect("cutout",417,179,"right",20,10);
+	right_out_effect[3] = new graphics.effect("cutout",517,179,"right",20,10);
+	
+	left_in_effect[0] = new graphics.effect("cutin",26,179,"right",20,10);
+	left_in_effect[1] = new graphics.effect("cutin",126,179,"right",20,10);
+	left_in_effect[2] = new graphics.effect("cutin",417,179,"right",20,10);
+	left_in_effect[3] = new graphics.effect("cutin",517,179,"right",20,10);
+	
+	left_out_effect[0] = new graphics.effect("cutout",26,179,"left",20,10);
+	left_out_effect[1] = new graphics.effect("cutout",126,179,"left",20,10);
+	left_out_effect[2] = new graphics.effect("cutout",417,179,"left",20,10);
+	left_out_effect[3] = new graphics.effect("cutout",517,179,"left",20,10);
+}
+
+
+function action_effect(num){
+	var start;
+	var x;
+    sub_main_pos = main_pos;
+	main_pos = main_pos + num;	//---------对中间所定位的焦点附值
+	if(main_pos < 0) main_pos = main_length-1;
+	else if(main_pos > main_length - 1) main_pos = 0;
+	iPanel.debug("tangxq text main_pos="+main_pos);
+	
+	if(num_flag == 1){// right
+		main_menu_focus=(main_menu_num+main_menu_focus-1)%main_menu_num;
+		start=main_menu_focus;
+		x=start;
+		for(var i = 0; i <= main_menu_disp_num; i++){
+			pic_arr[x].visible = true;
+			pic_arr[x].execEffect(right_effect[i]);
+			x = (x+1)%main_menu_num;
+		}
+		for(i=0; i<main_menu_num-main_menu_disp_num-1; i++) {
+			pic_arr[x].visible = false;
+			pic_arr[x].shutEffect();
+			x = (x+1)%main_length;
+		}
+ 		
+	}else{	//left
+		start=main_menu_focus;
+		x=start;
+		for(var i = 0; i<=main_menu_disp_num; i++){
+			pic_arr[x].visible = true;
+			pic_arr[x].execEffect(left_effect[i]);
+			x = (x+1)%main_menu_num;
+		}
+		for(i=0; i<main_menu_num-main_menu_disp_num-1; i++) {
+			pic_arr[x].visible = false;
+			pic_arr[x].shutEffect();
+			x = (x+1)%main_length;
+		}
+
+		main_menu_focus=(main_menu_focus+1)%main_menu_num;
+	}
+	setTimeout("action_sub_effect2()",200);
+    setTimeout("action_AD_effect2()",500);
+}
+
+function action_sub_effect(){
+	if(text_pos!=main_pos) {
+		//con[text_pos].bindEffect(opacity_down);
+		//con[text_pos].execEffect();	
+		con[text_pos].visible = false;
+		con[text_pos].shutEffect();
+	}
+	
+	con[main_pos].visible = true;	
+	//con[main_pos].bindEffect(opacity_up);
+	con[main_pos].execEffect(opacity_up);
+	
+	//focus.bindEffect(focus_opacity_up);
+	focus.execEffect(focus_opacity_up);
+	text_pos = main_pos;
+}
+
+function action_sub_effect2(){
+	canvas.copy(con_surface, con[main_pos]);
+	con_surface.visible = true;	
+	con_surface.execEffect(opacity_up);
+	
+	focus.execEffect(focus_opacity_up);
+	text_pos = main_pos;
+}
+
+function action_AD_effect(){
+	if(num_flag == 1){// right
+		iPanel.debug("ad_pos = "+ad_pos+" main_pos="+main_pos);
+		if(ad_pos!=main_pos) {
+	    for(i=0; i<4; i++) {
+			AD_arr[ad_pos][i].visible = true;
+			AD_arr[ad_pos][i].execEffect(right_out_effect[i]);
+		}
+		}
+	    for(i=0; i<4; i++) {
+			AD_arr[main_pos][i].visible = true;
+	    	AD_arr[main_pos][i].execEffect(right_in_effect[i]);
+		}
+	}else{//left
+		if(ad_pos!=main_pos) {
+	    for(i=0; i<4; i++) {
+			AD_arr[ad_pos][i].visible = true;
+			AD_arr[ad_pos][i].execEffect(left_out_effect[i]);
+		}
+		}
+	    for(i=0; i<4; i++) {
+			AD_arr[main_pos][i].visible = true;
+	    	AD_arr[main_pos][i].execEffect(left_in_effect[i]);
+		}
+	}
+	for(var i = 0; i < mainMenu.length; i++){
+		if(i != main_pos && i!=ad_pos){
+			for(var j = 0; j < 4; j++){
+				AD_arr[i][j].visible = false;
+				AD_arr[i][j].shutEffect();
+			}
+	   	}
+	}
+	ad_pos=main_pos;
+}
+
+function action_AD_effect2(){
+	if(num_flag == 1){// right
+		iPanel.debug("ad_pos = "+ad_pos+" main_pos="+main_pos);
+		if(ad_pos!=main_pos) {
+	    for(i=0; i<4; i++) {
+			canvas.copy(AD_surface_arr[0][i], AD_arr[ad_pos][i]);
+			AD_surface_arr[0][i].visible = true;
+			AD_surface_arr[0][i].execEffect(right_out_effect[i]);
+		}
+		}
+	    for(i=0; i<4; i++) {
+			canvas.copy(AD_surface_arr[1][i], AD_arr[main_pos][i]);
+			AD_surface_arr[1][i].visible = true;
+	    	AD_surface_arr[1][i].execEffect(right_in_effect[i]);
+		}
+	}else{//left
+		if(ad_pos!=main_pos) {
+	    for(i=0; i<4; i++) {
+			canvas.copy(AD_surface_arr[0][i], AD_arr[ad_pos][i]);
+			AD_surface_arr[0][i].visible = true;
+			AD_surface_arr[0][i].execEffect(left_out_effect[i]);
+		}
+		}
+	    for(i=0; i<4; i++) {
+			canvas.copy(AD_surface_arr[1][i], AD_arr[main_pos][i]);
+			AD_surface_arr[1][i].visible = true;
+			AD_surface_arr[1][i].execEffect(left_in_effect[i]);
+		}
+	}
+	ad_pos=main_pos;
+}
+
+function changeFocus(_num){
+    var temp_pos ;
+    var sublen=mainMenu[main_pos].subMenu.length;
+    temp_pos = sub_pos;
+	iPanel.debug("changeFocus, sub_pos="+sub_pos+",sublen="+sublen);
+	if(_num > 0) {//down
+		if(temp_pos<sublen-1) {
+			focus.execEffect(bottom_in_effect[temp_pos]);	
+ 			sub_pos = sub_pos + 1;
+			if(sub_pos>=sublen-1) {
+				sub_pos=sublen-1;
+			}
+		}
+	}
+	else if(_num < 0){//up
+		if(temp_pos>0) {
+			focus.execEffect(top_in_effect[temp_pos]);	
+ 			sub_pos = sub_pos - 1;
+			if(sub_pos<0) {
+				sub_pos=0;
+			}
+		}
+   }
+}
+
+function exit()
+{
+	var control = new graphics.effectControl();
+	ef = new graphics.effect("zoom",0,0,640,526,260,220,100,100,20,20);
+	//ef = new graphics.effect("cutout",0,0,"left",20,10);
+
+	control.execPageEffect(ef);	
+}
+
+//-->
+</SCRIPT>
+</HEAD>
+
+<BODY onload="init();" onunload="exit();">
+
+</BODY>
+</HTML>
+

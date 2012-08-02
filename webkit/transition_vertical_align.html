@@ -1,0 +1,69 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:12px;
+ }
+.verticalAlign{
+  margin:10px;
+  padding:5px;
+}
+
+.image1{
+  vertical-align:text-bottom;
+  width:200px;
+  height:150px;
+  -webkit-transition-duration:1s;
+}
+
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+var left_flag=0;
+var width_flag=0;
+
+function change_vertical_align(){
+  if(text_flag==0){
+	document.getElementById("image1").style.verticalAlign = "text-top";	
+	text_flag=1;
+  }else{
+	document.getElementById("image1").style.verticalAlign = "text-bottom";
+	text_flag=0;
+	}
+}
+
+
+
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变vertical-align属性</span></p>
+<p>功能描述 : 用transition样式来使vertical-align的值在一定时间内渐变，渐变的过程开始于vertical-align值的改变</p>
+<p>测试方法 :采用button的onclick事件来使页面上图片的vertical-align值改变，从而点击页面上的按钮就可以看到图片对齐的渐变效果 </p>
+<p>验收标准 : 点击“改变垂直对齐”按钮，页面上图片与文字的底部对齐渐变顶部对齐，再次点击恢复；且这些渐变时间均为1秒</p>
+
+<hr>
+<input type="button" value="改变垂直对齐" onclick="change_vertical_align()" class="verticalAlign">
+
+<p id="p1" class="word">这个段落中<img src="5.gif" class="image1" id="image1" align="left">有一张图片</p>
+
+
+
+
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+
+<hr>
+
+<a href="transition_text_indent.html">prev</a>/<a href="transition_z_index.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>
+

@@ -1,0 +1,124 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:12px;
+ }
+.delay1{
+  margin:10px;
+  padding:5px;
+}
+.delay2{
+  position: absolute;
+  left:20%;
+  margin:10px;
+  padding:5px;
+}
+.delay3{
+  position: absolute;
+  left:40%;
+  margin:10px;
+  padding:5px;
+}
+.div1{
+ background-color:red;
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:0;
+ top:230px;
+ -webkit-transition-duration:1s;
+ -webkit-transition-delay:-500ms;
+}
+.div2{
+ background-color:red;
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:210px;
+ top:230px;
+ -webkit-transition-duration:1s;
+ -webkit-transition-delay:0;
+}
+.div3{
+ background-color:red;
+ width:200px;
+ height:150px;
+ position:absolute;
+ left:420px;
+ top:230px;
+ -webkit-transition-duration:2s;
+ -webkit-transition-delay:1s;
+}
+
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+var left_flag=0;
+var width_flag=0;
+
+function transition_delay1(){
+  if(text_flag==0){
+    document.getElementById("div1").style.backgroundColor = "blue";
+	text_flag=1;
+  }else{
+    document.getElementById("div1").style.backgroundColor = "red";
+	text_flag=0;
+	}
+}
+
+function transition_delay2(){
+if(left_flag==0){
+    document.getElementById("div2").style.backgroundColor = "blue";
+	left_flag=1;
+  }else{
+    document.getElementById("div2").style.backgroundColor = "red";
+	left_flag=0;
+	}
+
+}
+function transition_delay3(){
+if(width_flag==0){
+    document.getElementById("div3").style.backgroundColor = "blue";
+	width_flag=1;
+  }else{
+    document.getElementById("div3").style.backgroundColor = "red";
+	width_flag=0;
+	}
+
+}
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition-delay</span></p>
+<p>功能描述 : transition-delay样式用来设置transition渐变transition-property样式值的开始时间，可以延时或推前渐变过程</p>
+<p>测试方法 :以改变background-color样式值作为例子，分别测试设置transition-delay为-500ms,0,1s的渐变过程</p>
+<p>验收标准 :点击“提前渐变”按钮，页面上第一个div的背景色从红色变为蓝色，点击按钮时div的背景色已经开始向蓝色渐变了；点击“立即渐变”按钮，页面上第二div的背景色也从红色变为蓝色，点击按钮时开始从红色渐变；点击“延迟渐变”按钮，页面上第三张个div背景色也从红色变为蓝色，点击按钮后过1秒再开始执行渐变；三个div渐变的时间均为1s，transition-timing-function均为默认 </p>
+
+<hr>
+<input type="button" value="提前渐变" onclick="transition_delay1()" class="delay1">
+<input type="button" value="立即渐变" onclick="transition_delay2()" class="delay2">
+<input type="button" value="延迟渐变" onclick="transition_delay3()" class="delay3">
+<div id="div1" class="div1"></div>
+<div id="div2" class="div2"></div>
+<div id="div3" class="div3"></div>
+
+
+
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+
+
+<hr>
+
+<a href="transition_timing_function.html">prev</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

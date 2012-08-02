@@ -1,0 +1,45 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+font-size:12px;
+zoom:1;
+-webkit-transition-duration:1s;
+}
+.a1{
+  margin:10px;
+  padding:5px;
+}
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+function change_zoom(){
+    document.getElementById("body1").style.zoom = "0.1";	
+}
+
+//-->
+</SCRIPT>
+</head>
+<body id="body1" onunload="change_zoom()">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;color:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">用transition实现页面切换之间的特效</span></p>
+<p>功能描述 :需实现页面之间切换时改变页面大小，即前一张被切换的页面逐渐缩小为0，后一张切换进来的页面的从中间一点逐渐放大到全屏。这个可以用transition渐变body的zoom属性来实现</p>
+<p>测试方法 :页面上有一个链接，链接到下一个页面，当离开当前页面时采用unonload事件把body的zoom改为0，用transition渐变；同时打开下一张页面时，在下一张页面上用onload事件把body的zoom从0改为1，再用transition渐变得到效果</p>
+<p>验收标准 :点击“进入改变zoom测试页面” 链接，当前页面会逐渐缩小为一点，同时下一张页面从一点逐渐放大为全屏，逐步的显现出来；所有渐变时间为1秒，渐变为匀速</p>
+
+<hr>
+<a href="pageExchange_zoom.html" class="a1">进入改变zoom测试页面</a>
+<!-- <input type="button" value="缩小body" onclick="change_zoom()"> -->
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<hr>
+
+<a href="mix_pageExchange_opacity.html">prev</a>/<a href="mix_cutin_cutout.html">next</a><br>
+<a href="index_mix.html">return</a>
+</body>
+</html>

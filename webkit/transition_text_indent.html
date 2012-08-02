@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=gb2312">
+<title>title</title>
+<style>
+body{
+ font-size:12px;
+ }
+.textIndent1{
+  margin:10px;
+  padding:5px;
+}
+.textIndent2{
+  position: absolute;
+  left:20%;
+  margin:10px;
+  padding:5px;
+}
+
+.word{
+  text-indent:1px;
+  -webkit-transition-duration:1s;
+}
+
+
+
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var text_flag=0;
+var left_flag=0;
+var width_flag=0;
+
+function text_indent1(){
+  if(text_flag==0){
+    document.getElementById("p1").style.textIndent = "30px";
+	text_flag=1;
+  }else{
+    document.getElementById("p1").style.textIndent = "1px";
+	text_flag=0;
+	}
+}
+
+function text_indent2(){
+if(left_flag==0){
+    document.getElementById("p2").style.textIndent = "-25px";
+	left_flag=1;
+  }else{
+    document.getElementById("p2").style.textIndent = "1px";
+	left_flag=0;
+	}
+
+}
+
+
+//-->
+</SCRIPT>
+</head>
+<body id="changeColor">
+<p style="word-wrap:left;font-size:18px;font-weight:bold;width:#0000CD">iPanel test:<span style="word-wrap:left;font-size:14px;color:#D2691E">transition渐变text_indent属性</span></p>
+<p>功能描述 : 用transition样式来使text_indent的值在一定时间内渐变，渐变的过程开始于text_indent值的改变</p>
+<p>测试方法 :采用button的onclick事件来使页面上文本的text_indent值改变，从而点击页面上的按钮就可以看到文本首行缩进的渐变效果 </p>
+<p>验收标准 : 点击“首行向右缩进”按钮，页面上第一个段落首行向右慢慢缩进，再点击一次恢复；点击“首行向左缩进”按钮，页面上第二个段落首行向左缩进，再次点击恢复；且这些渐变时间均为1秒</p>
+
+<hr>
+<input type="button" value="首行向右缩进" onclick="text_indent1()" class="textIndent1">
+<input type="button" value="首行向左缩进" onclick="text_indent2()" class="textIndent2">
+
+<!-- <h3 id="head1" class="head1">this is head h3.this is head h3.</h1><br> -->
+<p id="p1" class="word">这个段落的首行将向右缩进</p><br><br>
+<p id="p2" class="word">这个段落的首行将向左缩进</p><br><br>
+
+
+
+
+<BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR>
+<BR><BR>
+
+
+<hr>
+
+<a href="transition_padding.html">prev</a>/<a href="transition_vertical_align.html">next</a><br>
+<a href="index_transition.html">return</a>
+</body>
+</html>

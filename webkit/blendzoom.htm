@@ -1,0 +1,80 @@
+<HTML>
+<HEAD>
+<TITLE> New Document </TITLE>
+<style type="text/css">
+#Layer1 {
+	position:absolute;
+	/*background-image:url(1.jpg);*/
+	background-repeat:no-repeat;
+	background-color:#000000;
+	visibility:visible;
+	z-index:1;
+	left: 9px;
+	top: 125px;
+	width: 373px;
+	height:283px;
+	opacity:0.5;
+	/*-webkit-transition-property:opacity, height, left, width, top;*/
+	-webkit-transition-duration:2s;
+}
+</style>
+<script type="text/javascript">
+function init(){
+	document.getElementById("Layer1").style.opacity = 0.5;
+	document.getElementById("Layer1").style.left = "4px";
+	document.getElementById("Layer1").style.width = "373px";
+	document.getElementById("Layer1").style.height = "283px";
+	document.getElementById("Layer1").style.top = "128px";
+}
+
+function testHeight(){
+	var style = document.getElementById("Layer1").style;
+	//alert(typeof style.opacity);
+	if(style.opacity === "1"){
+		style.webkitTransitionDuration = "2s";
+		style.opacity = "0";
+		style.height = "1px";
+	}else{
+		style.webkitTransitionDuration = "4s";
+		style.opacity = "1";
+		style.height = "283px";
+	}
+}
+
+function testblend(){
+	var style = document.getElementById("Layer1").style;
+	//alert(typeof style.opacity);
+	if(style.left === "4px"){
+		style.webkitTransitionDuration = "2s";
+		style.left = "400px";
+		style.top = "300px";
+		style.opacity = "0";
+		style.height = "1px";
+		style.width = "1px";
+	}else{
+		style.webkitTransitionDuration = "4s";
+		style.top = "128px";
+		style.left = "4px";
+		style.opacity = "1";
+		style.height = "283px";
+		style.width = "373px";
+	}
+}
+</script>
+</HEAD>
+
+<BODY onLoad="init()">
+<br>
+<input type="button" onClick="testHeight()"  value="testHeight"/><br><br>
+<input type="button" onClick="testblend()"  value="blendzoom"/>
+<br>
+<hr>
+<div>
+  <div id="Layer1">
+  <img src="1.jpg" />  
+  </div>
+</div>
+<br><br><br>
+
+</BODY>
+</HTML>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>平面魔方</title>
+<style type="text/css">
+body{
+	margin:0px;padding:0px;background-image:url("img/index/index_bg.png");
+	width:1280px;height:720px;
+}
+#title{
+	position:absolute;top:310px;left:560px;background-image:url("img/index/title.png");
+	width:155px;height:293px;
+}
+#opfocus{
+	position:absolute;top:283px;left:502px;width:268px;;height:83px;
+	background-image:url('img/index/btn_focus_bg.png');
+	-webkit-transition-duration:350ms;
+}
+#op1{
+	position:absolute;top:283px;left:502px;width:268px;;height:83px;
+	background-image:url('img/index/btn_nfocus_bg.png');
+	-webkit-transition-duration:350ms;
+}
+#op2{
+	position:absolute;top:372px;left:502px;width:268px;;height:83px;
+	background-image:url('img/index/btn_nfocus_bg.png');
+	-webkit-transition-duration:350ms;
+}
+#op3{
+	position:absolute;top:460px;left:502px;width:268px;;height:83px;
+	background-image:url('img/index/btn_nfocus_bg.png');
+	-webkit-transition-duration:350ms;
+}
+#op4{
+	position:absolute;top:550px;left:502px;width:268px;;height:83px;
+	background-image:url('img/index/btn_nfocus_bg.png');
+	-webkit-transition-duration:350ms;
+}
+</style>
+
+<script src="js/keyEvent.js"></script>
+
+<script type="text/javascript">
+	document.onkeydown = grabEvent;
+	//document.onkeypress = grabEvent;
+	function grabEvent(event) {
+		var code = Event(event);
+		switch (code) {
+		case "KEY_UP":
+			upDownFocus("up");
+			break;
+		case "KEY_DOWN":
+			upDownFocus("down");
+			break;
+		case "KEY_LEFT":
+
+			break;
+		case "KEY_RIGHT":
+
+			break;
+		case "KEY_SELECT":
+			window.location.href = gotoUrl[currSelIndex];
+			break;
+		}
+	};
+	
+var currSelIndex = 0;
+var gotoUrl = ["game.htm","game.htm","help.htm",""];
+var focusDivTop = ["283px","373px","460px","550px"];
+
+function upDownFocus(direction){
+	switch(direction){
+	case "up":
+		currSelIndex = ((currSelIndex-1)+4) % 4;
+		break;
+	case "down":
+		currSelIndex = ((currSelIndex+1)+4) % 4;
+		break;
+	}	
+	setFocusDivPosition();
+}
+function setFocusDivPosition(){
+	$("opfocus").style.top = focusDivTop[currSelIndex];
+}
+
+function $(id){
+	return document.getElementById(id);
+}
+
+</script>
+</head>
+<body >
+	<div>
+		<div id="op1"></div>
+		<div id="op2"></div>
+		<div id="op3"></div>
+		<div id="op4"></div>
+		<div id="opfocus"></div>
+		<div id="title"></div>
+	</div>
+	
+</body>
+</html>
